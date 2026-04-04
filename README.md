@@ -5,7 +5,7 @@ Client-side vehicle maintenance tracker. All data lives in your browser's Indexe
 **Open `index.html` directly in any browser. No installation or local server needed.**
 
 > [!WARNING]
-> All data is stored only in your browser's IndexedDB. It will be lost if you clear browser data, switch browsers, or reinstall your OS. **Export a backup regularly** via Settings → Data → Export.
+> All data is stored only in your browser's IndexedDB. It will be lost if you clear browser data, switch browsers, or reinstall your OS. You should regularly export a backup via Settings → Data → Export.
 
 ## Features
 
@@ -18,6 +18,7 @@ Client-side vehicle maintenance tracker. All data lives in your browser's Indexe
 - Toyota/Daihatsu EPC data (`data/parts-db.json`) pre-fills intervals and OEM part numbers
 - Full export/import backup as JSON
 - Dark mode, configurable alert thresholds, km/miles, 12 currency options
+- Localisation — English, Bahasa Melayu, Simplified Chinese, Traditional Chinese; auto-detected from browser language with a manual override in Settings
 
 ## Project layout
 
@@ -30,6 +31,7 @@ Client-side vehicle maintenance tracker. All data lives in your browser's Indexe
 ├── js/
 │   ├── app.js                  # Alpine.js root store + hash router
 │   ├── db.js                   # Dexie.js schema, migrations, CRUD
+│   ├── i18n.js                 # Localisation engine + all locale strings (en, ms, zh-Hans, zh-Hant)
 │   ├── utils.js                # Pure utilities: date, formatting, estimation algorithms
 │   ├── strings.js              # SVG icons and UI label constants
 │   ├── epc.js                  # Parts DB loader and vehicle lookup
@@ -111,7 +113,7 @@ Key decisions made during sessions:
 1. **No build step.** No `import`/`export`, no TypeScript, no bundler. All JS is plain ES2020 globals. The `scripts/` directory is Node.js tooling only — it does not touch production code.
 2. **No backend.** Everything is client-side. Persist to IndexedDB via `window.DB`. Fetch only same-origin files.
 3. **No `max-w-*` on `<main>`.** The layout is `class="w-full px-4 py-6"`. Parts tables need full horizontal space.
-4. **Script load order matters.** `version.js` → `strings.js` → `utils.js` → `db.js` → `data/parts-db.js` → `epc.js` → views → `app.js` → Alpine (defer). Each file exposes a global (`window.APP_VERSION`, `window.Strings`, `window.Utils`, `window.DB`, `window.EPC`).
+4. **Script load order matters.** `version.js` → `i18n.js` → `strings.js` → `utils.js` → `db.js` → `data/parts-db.js` → `epc.js` → views → `app.js` → Alpine (defer). Each file exposes a global (`window.APP_VERSION`, `window.I18n`, `window.Strings`, `window.Utils`, `window.DB`, `window.EPC`).
 
 5. **Bumping the version:** edit `js/version.js` (the only place the version string lives), commit, then tag. The navbar reads `window.APP_VERSION` at runtime — nothing else needs changing.
 

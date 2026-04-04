@@ -8,4 +8,4 @@
  * For AI assistants: when the user asks to bump the version or tag a release,
  * update the string below to match the new tag, then commit before tagging.
  */
-window.APP_VERSION = 'v0.1.1';
+window.APP_VERSION = 'v0.2.0';
