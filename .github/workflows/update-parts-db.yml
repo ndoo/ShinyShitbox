@@ -1,0 +1,43 @@
+name: Update Parts Database
+
+on:
+  schedule:
+    # Run on the 1st of every month at 02:00 UTC
+    - cron: '0 2 1 * *'
+  workflow_dispatch:   # Allow manual trigger from Actions tab
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install --prefix scripts node-fetch cheerio
+
+      - name: Run parts DB updater
+        run: node scripts/update-parts-db.js
+
+      - name: Check for changes
+        id: changes
+        run: |
+          git diff --exit-code data/parts-db.json && echo "changed=false" >> $GITHUB_OUTPUT || echo "changed=true" >> $GITHUB_OUTPUT
+
+      - name: Commit updated parts DB
+        if: steps.changes.outputs.changed == 'true'
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          VERSION=$(node -e "const d=require('./data/parts-db.json'); console.log(d.version)")
+          git add data/parts-db.json data/parts-db.js
+          git commit -m "chore: update parts-db to ${VERSION}"
+          git push

@@ -1,0 +1,209 @@
+/* ── Condition colour classes ───────────────────────────────────── */
+.condition-bar-critical  { --progress-color: #ef4444; }
+.condition-bar-warning   { --progress-color: #f59e0b; }
+.condition-bar-good      { --progress-color: #22c55e; }
+.condition-bar-unknown   { --progress-color: #9ca3af; }
+
+progress.condition-bar::-webkit-progress-value { background: var(--progress-color, #22c55e); }
+progress.condition-bar::-moz-progress-bar      { background: var(--progress-color, #22c55e); }
+
+/* ── Urgency badge colours ─────────────────────────────────────── */
+.urgency-overdue  { @apply badge badge-error text-white; }
+.urgency-due-soon { @apply badge badge-warning; }
+.urgency-upcoming { @apply badge badge-info text-white; }
+.urgency-ok       { @apply badge badge-success text-white; }
+
+/* ── Wizard step transitions ───────────────────────────────────── */
+.wizard-step-enter {
+  animation: stepIn 0.2s ease-out;
+}
+@keyframes stepIn {
+  from { opacity: 0; transform: translateX(12px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+/* ── Chart containers ──────────────────────────────────────────── */
+.chart-container {
+  position: relative;
+  height: 200px;
+}
+.chart-container-tall {
+  position: relative;
+  height: 300px;
+}
+
+/* ── Mobile touch targets ──────────────────────────────────────── */
+.btn, .select, .input, .checkbox, .radio, .toggle {
+  min-height: 44px;
+}
+
+/* ── Quick condition buttons ───────────────────────────────────── */
+.condition-btn-row {
+  display: flex;
+  gap: 0.25rem;
+  flex-wrap: wrap;
+}
+.condition-btn-row .btn {
+  flex: 1;
+  min-width: 60px;
+  font-size: 0.75rem;
+  padding: 0.25rem 0.5rem;
+}
+
+/* ── Service cluster card highlight ───────────────────────────── */
+.cluster-card {
+  border-left: 4px solid oklch(var(--p));
+}
+
+/* ── Scrollbar (webkit) ────────────────────────────────────────── */
+::-webkit-scrollbar       { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: oklch(var(--bc) / 0.3); border-radius: 3px; }
+
+/* ── Health radial label ───────────────────────────────────────── */
+.radial-label {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+/* ── Part grid category header ─────────────────────────────────── */
+.category-header {
+  text-transform: capitalize;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  opacity: 0.5;
+  padding: 0.5rem 0 0.25rem;
+}
+
+/* ── Nudge chip ────────────────────────────────────────────────── */
+.nudge-chip {
+  @apply badge badge-warning gap-1 cursor-pointer hover:badge-error transition-colors;
+  padding: 0.5rem 0.75rem;
+  height: auto;
+  white-space: normal;
+  text-align: left;
+}
+
+/* ── EPC source label ──────────────────────────────────────────── */
+.epc-label {
+  @apply badge badge-ghost badge-sm;
+  font-size: 0.65rem;
+}
+
+/* ── Vehicle card top accent: ensure visibility ─────────────────── */
+.card .vehicle-accent {
+  border-bottom: 1px solid oklch(var(--b3));
+}
+
+/* ── Stats compact ─────────────────────────────────────────────── */
+.stat {
+  padding: 0.75rem 1.25rem;
+}
+
+/* ── Card hover transition ─────────────────────────────────────── */
+.card {
+  transition: box-shadow 0.15s ease, transform 0.15s ease;
+}
+.card:hover {
+  transform: translateY(-1px);
+}
+
+/* ── Section title style ───────────────────────────────────────── */
+.section-title {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  opacity: 0.5;
+  margin-bottom: 0.75rem;
+}
+
+/* ── Table compact thead ───────────────────────────────────────── */
+.table thead th {
+  font-weight: 600;
+  font-size: 0.72rem;
+}
+
+/* ── Empty state ───────────────────────────────────────────────── */
+.empty-state {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: oklch(var(--bc) / 0.4);
+}
+
+/* ── Main view enter animation ─────────────────────────────────── */
+.view-enter {
+  animation: viewIn 0.18s ease-out;
+}
+@keyframes viewIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Urgency table: border-l on <tr> requires separate border model ── */
+.urgency-table {
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+/* ── Condition bars: more readable height ──────────────────────── */
+progress.condition-bar {
+  height: 0.625rem !important;  /* 10px — up from 6px */
+  min-width: 3.5rem;
+}
+
+/* ── Vehicle card enhanced shadow ──────────────────────────────── */
+.card.vehicle-health-card {
+  border: 1px solid oklch(var(--b3));
+  box-shadow: 0 2px 8px oklch(var(--bc) / 0.07), 0 1px 2px oklch(var(--bc) / 0.05);
+}
+.card.vehicle-health-card:hover {
+  box-shadow: 0 8px 24px oklch(var(--bc) / 0.12), 0 2px 6px oklch(var(--bc) / 0.08);
+  transform: translateY(-2px);
+}
+
+/* ── Toast: slide-in animation + better shadow ─────────────────── */
+.toast .alert {
+  box-shadow: 0 4px 16px oklch(var(--bc) / 0.15);
+  animation: toastIn 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+@keyframes toastIn {
+  from { opacity: 0; transform: translateX(24px) scale(0.96); }
+  to   { opacity: 1; transform: translateX(0) scale(1); }
+}
+
+/* ── Empty state: more engaging ────────────────────────────────── */
+.empty-state-icon {
+  font-size: 3.5rem;
+  display: block;
+  margin-bottom: 1rem;
+  opacity: 0.35;
+}
+.empty-state-enhanced {
+  text-align: center;
+  padding: 4rem 1rem;
+}
+.empty-state-enhanced h3 {
+  font-size: 1.125rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+.empty-state-enhanced p {
+  color: oklch(var(--bc) / 0.5);
+  font-size: 0.875rem;
+  margin-bottom: 1.5rem;
+}
+
+/* ── Destructive action buttons: easier to discover ────────────── */
+.btn-ghost.text-error {
+  opacity: 0.6 !important;
+}
+.btn-ghost.text-error:hover {
+  opacity: 1 !important;
+}

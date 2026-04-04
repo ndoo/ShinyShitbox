@@ -1,0 +1,1332 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <title>ShinyShitbox</title>
+
+  <!-- DaisyUI CSS (must come before Tailwind script) -->
+  <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.10/dist/full.min.css" rel="stylesheet">
+
+  <!-- Custom styles -->
+  <link rel="stylesheet" href="css/custom.css">
+
+  <!-- Tailwind CSS Play CDN (JIT engine) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: ['selector', '[data-theme="dark"]'],
+      corePlugins: { preflight: false },
+    };
+  </script>
+
+  <!-- Dependencies -->
+  <script src="https://cdn.jsdelivr.net/npm/dexie@3.2.7/dist/dexie.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dexie-export-import@4.0.7/dist/dexie-export-import.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+
+  <!-- App scripts (sync, before Alpine defer) -->
+  <script src="js/strings.js?v=20260403k"></script>
+  <script src="js/utils.js?v=20260403w"></script>
+  <script src="js/db.js?v=20260403k"></script>
+  <!-- Bundled parts DB — loaded as a script so it works when opened via file:// -->
+  <script src="data/parts-db.js"></script>
+  <script src="js/epc.js?v=20260403k"></script>
+  <script src="js/views/dashboard.js?v=20260404a"></script>
+  <script src="js/views/vehicle-detail.js?v=20260404a"></script>
+  <script src="js/views/wizard.js?v=20260404a"></script>
+  <script src="js/views/settings.js?v=20260404a"></script>
+  <script src="js/app.js?v=20260404a"></script>
+
+  <!-- Alpine.js (defer — initialises after all scripts above are parsed) -->
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.3/dist/cdn.min.js"></script>
+</head>
+<body class="min-h-screen bg-base-200" x-data x-init="Alpine.store('app').init()">
+
+  <!-- ══ NAVBAR ═══════════════════════════════════════════════════════ -->
+  <div class="navbar bg-base-100 shadow-sm sticky top-0 z-40">
+    <!-- Logo -->
+    <div class="navbar-start">
+      <a class="btn btn-ghost normal-case gap-2 px-3"
+         href="#dashboard">
+        <span class="text-primary" x-html="Strings.icon('wrench', 'w-5 h-5')"></span>
+        <span class="font-extrabold text-base tracking-tight">ShinyShitbox</span>
+      </a>
+    </div>
+
+    <!-- Actions -->
+    <div class="navbar-end gap-2">
+      <!-- Theme toggle -->
+      <label class="swap swap-rotate btn btn-ghost btn-sm btn-circle">
+        <input type="checkbox"
+               :checked="Alpine.store('app').theme === 'dark'"
+               @change="Alpine.store('app').toggleTheme()">
+        <svg class="swap-off fill-current w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M5.64,17l-.71.71a1,1,0,0,0,0,1.41,1,1,0,0,0,1.41,0l.71-.71A1,1,0,0,0,5.64,17ZM5,12a1,1,0,0,0-1-1H3a1,1,0,0,0,0,2H4A1,1,0,0,0,5,12Zm7-7a1,1,0,0,0,1-1V3a1,1,0,0,0-2,0V4A1,1,0,0,0,12,5ZM5.64,7,5,6.36a1,1,0,0,0-1.41,1.41L4.22,8.46A1,1,0,0,0,5.64,7Zm12,.71.71-.71A1,1,0,0,0,16.93,5.64l-.71.71A1,1,0,0,0,17.66,7.66ZM21,11H20a1,1,0,0,0,0,2h1a1,1,0,0,0,0-2Zm-9,8a1,1,0,0,0-1,1v1a1,1,0,0,0,2,0V20A1,1,0,0,0,12,19ZM18.36,17A1,1,0,0,0,17,18.36l.71.71a1,1,0,0,0,1.41-1.41ZM12,6.5A5.5,5.5,0,1,0,17.5,12,5.51,5.51,0,0,0,12,6.5Zm0,9A3.5,3.5,0,1,1,15.5,12,3.5,3.5,0,0,1,12,15.5Z"/></svg>
+        <svg class="swap-on fill-current w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21.64,13a1,1,0,0,0-1.05-.14,8.05,8.05,0,0,1-3.37.73A8.15,8.15,0,0,1,9.08,5.49a8.59,8.59,0,0,1,.25-2A1,1,0,0,0,8,2.36,10.14,10.14,0,1,0,22,14.05,1,1,0,0,0,21.64,13Zm-9.5,6.69A8.14,8.14,0,0,1,7.08,5.22v.27A10.15,10.15,0,0,0,17.22,15.63a9.79,9.79,0,0,0,2.1-.22A8.11,8.11,0,0,1,12.14,19.73Z"/></svg>
+      </label>
+
+      <!-- Settings -->
+      <a class="btn btn-ghost btn-sm btn-circle" href="#settings" title="Settings"
+         x-html="Strings.icon('settings', 'w-5 h-5')">
+      </a>
+    </div>
+  </div>
+
+  <!-- ══ MAIN CONTENT ══════════════════════════════════════════════════ -->
+  <main class="w-full px-4 py-6">
+
+    <!-- ── DASHBOARD ──────────────────────────────────────────────── -->
+    <div x-show="Alpine.store('app').currentView === 'dashboard'"
+         x-data="dashboardView"
+         x-init="initDashboard()"
+         class="view-enter"
+         @vehicle-changed.window="loadAll()">
+
+      <!-- Empty state -->
+      <div x-show="!loading && Alpine.store('app').vehicles.length === 0"
+           class="empty-state-enhanced">
+        <span class="empty-state-icon">🚗</span>
+        <h3>No vehicles yet</h3>
+        <p>Add your first vehicle in Settings to start tracking maintenance intervals and part condition.</p>
+        <a href="#settings" class="btn btn-primary gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none"
+               viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+          </svg>
+          Add a Vehicle
+        </a>
+      </div>
+
+      <!-- Loading -->
+      <div x-show="loading" class="flex justify-center py-20">
+        <span class="loading loading-spinner loading-lg"></span>
+      </div>
+
+      <template x-if="!loading && Alpine.store('app').vehicles.length > 0">
+        <div>
+
+          <!-- Urgency list -->
+          <div class="card bg-base-100 shadow-sm mb-5">
+            <div class="card-body p-4">
+              <div class="flex items-center justify-between mb-3">
+                <h2 class="font-bold text-base flex items-center gap-2">
+                  <span class="text-warning" x-html="Strings.icon('bell', 'w-4 h-4')"></span>
+                  Upcoming Maintenance
+                </h2>
+                <span class="badge badge-neutral badge-sm"
+                      x-text="urgentItems.length + (urgentItems.length === 1 ? ' item' : ' items')"></span>
+              </div>
+
+              <div x-show="urgentItems.length === 0" class="text-base-content/50 text-sm py-4 text-center">
+                All parts are in good shape. ✅
+              </div>
+
+              <div class="overflow-x-auto">
+                <table class="table table-sm urgency-table" x-show="urgentItems.length > 0">
+                  <thead>
+                    <tr>
+                      <th>Condition</th>
+                      <th>Part</th>
+                      <th>Vehicle</th>
+                      <th>Due</th>
+                      <th></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <template x-for="item in urgentItems" :key="item.vehicleId + '-' + item.partId">
+                      <tr class="hover transition-colors border-l-4"
+                          :class="{
+                            'border-l-error bg-error/5 hover:bg-error/10': item.urgency === 'overdue',
+                            'border-l-warning bg-warning/5 hover:bg-warning/10': item.urgency === 'due-soon',
+                            'border-l-transparent': item.urgency !== 'overdue' && item.urgency !== 'due-soon',
+                          }">
+                        <td>
+                          <template x-if="item.condition != null">
+                            <div :class="item.condition.tooltip ? 'tooltip tooltip-right' : ''"
+                                 :data-tip="item.condition.tooltip || null">
+                              <div class="flex items-center gap-1.5">
+                                <progress class="progress w-14 h-1.5 condition-bar"
+                                          :class="conditionColor(item.condition.value ?? item.condition)"
+                                          :value="item.condition.value ?? item.condition" max="100"></progress>
+                                <span class="text-xs font-semibold tabular-nums"
+                                      x-text="(item.condition.value ?? item.condition) + '%'"></span>
+                              </div>
+                            </div>
+                          </template>
+                          <template x-if="item.condition == null">
+                            <span class="badge badge-sm" :class="urgBadgeClass(item.urgency)"
+                                  x-text="urgLabel(item.urgency)"></span>
+                          </template>
+                        </td>
+                        <td class="font-medium" x-text="item.partName"></td>
+                        <td class="text-base-content/60 text-xs" x-text="item.vehicleName"></td>
+                        <td class="text-sm" x-text="fmtDue(item.due)"></td>
+                        <td>
+                          <button class="btn btn-xs btn-primary btn-square" @click="fixItem(item)" title="Log service"
+                                  x-html="Strings.icon('wrench', 'w-3.5 h-3.5')"></button>
+                        </td>
+                      </tr>
+                    </template>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- Vehicle health cards -->
+          <h2 class="font-semibold text-xs text-base-content/50 uppercase tracking-widest mb-3">Fleet Overview</h2>
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            <template x-for="card in healthCards" :key="card.vehicle.id">
+              <div class="card bg-base-100 shadow-sm hover:shadow-md transition-all cursor-pointer overflow-hidden group vehicle-health-card"
+                   @click="openVehicle(card.vehicle.id)">
+                <!-- Top accent strip -->
+                <div class="h-2 group-hover:h-3 transition-all vehicle-accent"
+                     :style="'background:' + (card.vehicle.color || '#6b7280')"></div>
+                <div class="card-body p-4">
+                  <div class="flex items-start justify-between gap-2">
+                    <div class="flex-1 min-w-0">
+                      <div class="font-bold text-base truncate" x-text="card.vehicle.name"></div>
+                      <div class="text-xs text-base-content/60 mt-0.5"
+                           x-text="[card.vehicle.year, card.vehicle.make, card.vehicle.model].filter(Boolean).join(' ')"></div>
+                      <div class="text-xs text-base-content/50 mt-1 font-mono"
+                           x-show="card.currentOdo"
+                           x-text="fmt(card.currentOdo)"></div>
+                    </div>
+                    <!-- Health radial -->
+                    <template x-if="card.healthScore != null">
+                      <div class="radial-progress text-xs font-bold flex-shrink-0"
+                           :style="'--value:' + card.healthScore + '; --size:3.5rem; --thickness:3px; color:' + healthColor(card.healthScore)"
+                           role="progressbar">
+                        <span x-text="card.healthScore + '%'"></span>
+                      </div>
+                    </template>
+                    <template x-if="card.healthScore == null">
+                      <div class="flex flex-col items-center justify-center w-14 h-14 rounded-full border-2 border-dashed border-base-300 flex-shrink-0">
+                        <span class="text-base-content/30 text-xs text-center leading-tight">No<br>parts</span>
+                      </div>
+                    </template>
+                  </div>
+                  <div class="flex gap-1.5 mt-3 flex-wrap">
+                    <span x-show="card.overdueCount > 0" class="badge badge-error badge-sm"
+                          x-text="card.overdueCount + ' overdue'"></span>
+                    <span x-show="card.dueSoonCount > 0" class="badge badge-warning badge-sm"
+                          x-text="card.dueSoonCount + ' due soon'"></span>
+                    <span x-show="card.overdueCount === 0 && card.dueSoonCount === 0"
+                          class="badge badge-success badge-sm">All good</span>
+                  </div>
+                </div>
+              </div>
+            </template>
+
+            <!-- Add vehicle card -->
+            <a href="#settings" class="card bg-base-100 shadow-sm border-2 border-dashed border-base-300 hover:border-primary hover:shadow-md transition-all overflow-hidden group">
+              <div class="h-1.5 bg-base-300 group-hover:bg-primary transition-colors vehicle-accent"></div>
+              <div class="card-body p-4 items-center justify-center text-center">
+                <div class="text-3xl text-base-content/25 group-hover:text-primary transition-colors">＋</div>
+                <div class="text-sm text-base-content/40 group-hover:text-primary transition-colors font-medium">Add Vehicle</div>
+              </div>
+            </a>
+          </div>
+        </div>
+      </template>
+    </div><!-- /dashboard -->
+
+    <!-- ── VEHICLE DETAIL ─────────────────────────────────────────── -->
+    <div x-show="Alpine.store('app').currentView === 'vehicle-detail'"
+         x-data="vehicleDetailView"
+         x-init="initVehicleDetail()"
+         class="view-enter"
+         @vehicle-changed.window="loadAll(Alpine.store('app').currentVehicleId)">
+
+      <!-- Vehicle page header -->
+      <div class="flex items-start justify-between gap-4 mb-5">
+        <div class="flex items-stretch gap-3 min-w-0">
+          <!-- Vehicle colour accent bar -->
+          <div class="w-1 rounded-full flex-shrink-0 self-stretch"
+               :style="'background:' + (vehicle?.color || '#6b7280')"></div>
+          <div class="min-w-0">
+            <div class="text-xs breadcrumbs p-0 mb-0.5">
+              <ul><li><a href="#dashboard" class="text-base-content/50 hover:text-base-content">Dashboard</a></li></ul>
+            </div>
+            <h1 class="text-xl font-bold leading-tight truncate" x-text="vehicle?.name || 'Vehicle'"></h1>
+            <p class="text-sm text-base-content/50 mt-0.5"
+               x-text="[vehicle?.year, vehicle?.make, vehicle?.model].filter(Boolean).join(' ')"></p>
+          </div>
+        </div>
+        <!-- Vehicle-level actions -->
+        <div class="flex items-center gap-2 flex-shrink-0" x-show="vehicle">
+          <button class="btn btn-sm btn-ghost gap-1.5 items-center"
+                  @click="$dispatch('open-quick-odo')" title="Log odometer reading">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none"
+                 viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            <span class="hidden sm:inline text-xs font-medium leading-none">Odometer</span>
+          </button>
+          <button class="btn btn-sm btn-primary gap-1.5 items-center"
+                  @click="openWizardNew()">
+            <span x-html="Strings.icon('wrench', 'w-4 h-4')"></span>
+            <span class="hidden sm:inline text-xs font-semibold leading-none">Log Service</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Odometer stats -->
+      <div class="stats stats-horizontal shadow bg-base-100 w-full mb-4 overflow-x-auto">
+        <div class="stat">
+          <div class="stat-title">Current Odometer</div>
+          <div class="stat-value text-lg" x-text="fmt(latestOdometer?.odometer)"></div>
+          <div class="stat-desc" x-text="fmtDate(latestOdometer?.date)"></div>
+        </div>
+        <div class="stat">
+          <div class="stat-title">Readings Logged</div>
+          <div class="stat-value text-lg" x-text="odometerHistory.length"></div>
+        </div>
+        <div class="stat">
+          <div class="stat-title">Active Parts</div>
+          <div class="stat-value text-lg" x-text="activeParts.length"></div>
+        </div>
+      </div>
+
+      <!-- Chart + manage readings -->
+      <div class="card bg-base-100 shadow-sm mb-4">
+        <div class="card-body p-4">
+          <div class="flex items-center justify-between mb-3">
+            <h2 class="font-semibold">Odometer History</h2>
+            <div class="flex gap-2">
+              <button class="btn btn-sm btn-ghost gap-1"
+                      @click="showOdoList = !showOdoList; if (!showOdoList) $nextTick(() => _renderChart())">
+                <span x-html="Strings.icon('list', 'w-4 h-4')"></span>
+                <span x-text="showOdoList ? Strings.label.hideList : Strings.label.manage"></span>
+              </button>
+              <button class="btn btn-sm btn-outline btn-square" @click="$dispatch('open-quick-odo')" title="Add odometer reading"
+                      x-html="Strings.icon('plus', 'w-4 h-4')">
+              </button>
+            </div>
+          </div>
+
+          <!-- Chart -->
+          <div x-show="!showOdoList">
+            <div x-show="odometerHistory.length < 2" class="text-center text-base-content/50 py-6 text-sm">
+              Add at least 2 odometer readings to see the chart.
+            </div>
+            <div class="chart-container" x-show="odometerHistory.length >= 2">
+              <canvas id="odomChart"></canvas>
+            </div>
+          </div>
+
+          <!-- Readings list / inline edit -->
+          <div x-show="showOdoList">
+            <div x-show="odometerHistory.length === 0" class="text-center text-base-content/50 py-6 text-sm">
+              No odometer readings yet.
+            </div>
+            <div x-show="odometerHistory.length > 0" class="overflow-x-auto">
+              <table class="table table-sm w-full">
+                <thead class="text-xs bg-base-200/60">
+                  <tr>
+                    <th>Date</th>
+                    <th>Odometer</th>
+                    <th>Source</th>
+                    <th>Notes</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <template x-for="r in sortedOdoHistory" :key="r.id">
+                    <tr class="hover:bg-base-200/30">
+                      <!-- View row -->
+                      <template x-if="editingOdoId !== r.id">
+                        <td class="text-sm tabular-nums" x-text="fmtDate(r.date)"></td>
+                      </template>
+                      <template x-if="editingOdoId === r.id">
+                        <td>
+                          <input type="date" class="input input-bordered input-xs w-36"
+                                 x-model="editOdoForm.date">
+                        </td>
+                      </template>
+
+                      <template x-if="editingOdoId !== r.id">
+                        <td class="text-sm tabular-nums" x-text="fmt(r.odometer)"></td>
+                      </template>
+                      <template x-if="editingOdoId === r.id">
+                        <td>
+                          <input type="number" class="input input-bordered input-xs w-28"
+                                 x-model="editOdoForm.odometer" min="0">
+                        </td>
+                      </template>
+
+                      <template x-if="editingOdoId !== r.id">
+                        <td>
+                          <span class="badge badge-ghost badge-xs capitalize"
+                                x-text="r.source || 'manual'"></span>
+                        </td>
+                      </template>
+                      <template x-if="editingOdoId === r.id">
+                        <td colspan="2">
+                          <div class="flex flex-col gap-1 w-full">
+                            <input type="text" class="input input-bordered input-xs w-full"
+                                   placeholder="Notes (optional)"
+                                   x-model="editOdoForm.notes">
+                            <p x-show="editOdoError" class="text-error text-xs" x-text="editOdoError"></p>
+                          </div>
+                        </td>
+                      </template>
+
+                      <template x-if="editingOdoId !== r.id">
+                        <td class="text-xs text-base-content/50 max-w-[160px] truncate"
+                            x-text="r.notes || '—'"></td>
+                      </template>
+
+                      <!-- Actions -->
+                      <template x-if="editingOdoId !== r.id">
+                        <td class="text-right whitespace-nowrap">
+                          <button class="btn btn-xs btn-ghost" @click="startEditOdo(r)" title="Edit"
+                                  x-html="Strings.icon('pencil', 'w-3.5 h-3.5')"></button>
+                          <button class="btn btn-xs btn-ghost text-error opacity-40 hover:opacity-100 transition-opacity"
+                                  @click="deleteOdo(r)" title="Delete"
+                                  x-html="Strings.icon('trash', 'w-3.5 h-3.5')"></button>
+                        </td>
+                      </template>
+                      <template x-if="editingOdoId === r.id">
+                        <td class="text-right whitespace-nowrap">
+                          <button class="btn btn-xs btn-primary" @click="saveEditOdo()">Save</button>
+                          <button class="btn btn-xs btn-ghost" @click="cancelEditOdo()">Cancel</button>
+                        </td>
+                      </template>
+                    </tr>
+                  </template>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Parts table -->
+      <div class="flex items-center justify-between mb-3">
+        <h2 class="font-bold text-base">Installed Parts</h2>
+        <div class="flex items-center gap-2">
+          <button class="btn btn-sm btn-primary btn-square" @click="openWizardNew()" title="Log service"
+                  x-html="Strings.icon('wrench', 'w-4 h-4')">
+          </button>
+        </div>
+      </div>
+
+      <div x-show="activeParts.length === 0" class="empty-state-enhanced">
+        <span class="empty-state-icon">🔧</span>
+        <h3>No parts recorded yet</h3>
+        <p>Log your first service to start tracking part health and maintenance intervals.</p>
+        <button class="btn btn-primary gap-2" @click="openWizardNew()">
+          <span x-html="Strings.icon('wrench', 'w-4 h-4')"></span>
+          Log First Service
+        </button>
+      </div>
+
+      <div x-show="activeParts.length > 0" class="overflow-x-auto rounded-lg border border-base-200">
+        <table class="table table-sm w-full">
+          <thead class="bg-base-200/60 text-xs">
+            <tr>
+              <th class="w-0 p-1"></th>
+              <th class="font-semibold">Part</th>
+              <template x-for="col in visibleColumns" :key="col.key">
+                <th class="font-semibold" x-text="col.label"></th>
+              </template>
+              <th></th>
+            </tr>
+          </thead>
+          <!-- One <tbody> per category — valid HTML, avoids multi-root x-for scoping issues -->
+          <template x-for="cat in categoryList" :key="cat">
+            <tbody>
+              <tr class="bg-base-200/40 pointer-events-none">
+                <td :colspan="visibleColumns.length + 3"
+                    class="py-1 px-3 text-xs font-bold tracking-widest uppercase opacity-50 capitalize"
+                    x-text="cat"></td>
+              </tr>
+              <template x-for="part in partsByCategory[cat]" :key="part.id">
+                <tr class="hover:bg-base-200/30 transition-colors">
+                  <td class="w-0 p-1" x-html="renderCell('condition', part)"></td>
+                  <td class="font-medium text-sm">
+                    <span x-text="part.partName" class="block"
+                          style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"
+                          :title="part.partName"></span>
+                  </td>
+                  <template x-for="col in visibleColumns" :key="col.key">
+                    <td x-html="renderCell(col.key, part)"></td>
+                  </template>
+                  <td class="text-right">
+                    <div class="flex items-center justify-end gap-1">
+                      <button class="btn btn-xs btn-ghost" @click="openWizardForPart(part)" title="Log service"
+                              x-html="Strings.icon('wrench', 'w-3.5 h-3.5')"></button>
+                      <button class="btn btn-xs btn-ghost" @click="openWizardForEdit(part)" title="Edit record"
+                              x-html="Strings.icon('pencil', 'w-3.5 h-3.5')"></button>
+                      <button class="btn btn-xs btn-ghost text-error opacity-40 hover:opacity-100 transition-opacity"
+                              @click="deletePartRecord(part)" title="Delete record"
+                              x-html="Strings.icon('trash', 'w-3.5 h-3.5')"></button>
+                    </div>
+                  </td>
+                </tr>
+              </template>
+            </tbody>
+          </template>
+        </table>
+      </div>
+
+    </div><!-- /vehicle-detail -->
+
+    <!-- ── WIZARD ─────────────────────────────────────────────────── -->
+    <div x-show="Alpine.store('app').currentView === 'wizard'"
+         x-data="wizardView"
+         x-init="initWizard()"
+         class="view-enter">
+
+      <!-- Breadcrumb -->
+      <div class="text-sm breadcrumbs mb-4">
+        <ul>
+          <li><a href="#dashboard">Dashboard</a></li>
+          <li><a href="#vehicle-detail" x-text="$store.app.currentVehicle?.name || 'Vehicle'"></a></li>
+          <li x-text="editMode ? 'Edit Service Record' : 'New Service Record'"></li>
+        </ul>
+      </div>
+
+      <!-- Step indicator -->
+      <ul class="steps w-full mb-6 text-xs">
+        <li class="step" :class="step >= 1 ? 'step-primary' : ''">Part</li>
+        <li class="step" :class="step >= 2 ? 'step-primary' : ''">Details</li>
+        <li class="step" :class="step >= 3 ? 'step-primary' : ''">Review</li>
+      </ul>
+
+      <!-- ── STEP 1: Part type + date ── -->
+      <div x-show="step === 1 && !editMode" class="wizard-step-enter">
+        <div class="card bg-base-100 shadow-sm">
+          <div class="card-body">
+            <h2 class="card-title">What are you servicing?</h2>
+
+            <!-- Part type search -->
+            <div class="form-control">
+              <label class="label"><span class="label-text">Part / Service Type</span></label>
+              <input type="text" class="input input-bordered w-full"
+                     placeholder="Search parts… (e.g. Engine Oil, Spark Plugs)"
+                     x-model="partTypeSearch"
+                     @input="_filterPartTypes()"
+                     @focus="_filterPartTypes()">
+              <!-- Dropdown results -->
+              <div x-show="(filteredPartTypes.length > 0 || partTypeSearch.trim()) && !selectedPartType"
+                   class="relative z-10 mt-1">
+                <ul class="menu bg-base-100 border border-base-300 rounded-box shadow-lg max-h-60 overflow-y-auto absolute w-full">
+                  <template x-for="pt in filteredPartTypes.slice(0,12)" :key="pt.id">
+                    <li><a @click="_selectPartType(pt)" x-text="pt.name"
+                           class="text-sm" :class="pt.isUserCreated ? 'italic' : ''"></a>
+                    </li>
+                  </template>
+                  <li x-show="filteredPartTypes.length === 0"
+                      class="px-4 py-2 text-sm text-base-content/50 pointer-events-none">No matches found.</li>
+                  <li class="border-t border-base-200 mt-1">
+                    <a @click="showNewPartTypeForm = true; newPartTypeForm.name = partTypeSearch; filteredPartTypes = []; partTypeSearch = ''"
+                       class="text-primary text-sm">+ Add as new part type</a>
+                  </li>
+                </ul>
+              </div>
+              <!-- Selected badge -->
+              <div x-show="selectedPartType" class="flex items-center gap-2 mt-2">
+                <span class="badge badge-primary gap-1">
+                  <span x-text="selectedPartType?.name"></span>
+                  <button @click="selectedPartType = null; partTypeSearch = ''" class="hover:opacity-70">✕</button>
+                </span>
+                <span x-show="epcLoading" class="loading loading-dots loading-xs text-primary"></span>
+                <span x-show="epcData && !epcLoading" class="epc-label">EPC data found</span>
+              </div>
+            </div>
+
+            <!-- New part type inline form -->
+            <div x-show="showNewPartTypeForm" class="border border-base-300 rounded-box p-3 mt-2 space-y-2">
+              <p class="font-medium text-sm">New Part Type</p>
+              <input type="text" class="input input-bordered input-sm w-full"
+                     placeholder="Name (e.g. Seat Cushion, Lamp Lens)"
+                     x-model="newPartTypeForm.name">
+              <div class="flex gap-2">
+                <select class="select select-bordered select-sm flex-1" x-model="newPartTypeForm.category">
+                  <template x-for="c in newPartTypeCategories" :key="c">
+                    <option :value="c" x-text="c"></option>
+                  </template>
+                  <option value="custom">Custom…</option>
+                </select>
+                <input x-show="newPartTypeForm.category === 'custom'"
+                       type="text" class="input input-bordered input-sm flex-1"
+                       placeholder="Category name" x-model="newPartTypeForm.customCategory">
+              </div>
+              <div class="flex gap-4 items-center text-sm">
+                <label class="flex items-center gap-1 cursor-pointer">
+                  <input type="checkbox" class="checkbox checkbox-sm" x-model="newPartTypeForm.isFluid">
+                  <span>Is a fluid</span>
+                </label>
+                <input type="number" class="input input-bordered input-sm w-28"
+                       placeholder="Default km" x-model="newPartTypeForm.defaultKmInterval" min="0">
+                <input type="number" class="input input-bordered input-sm w-28"
+                       placeholder="Default days" x-model="newPartTypeForm.defaultDaysInterval" min="0">
+              </div>
+              <div class="flex gap-2">
+                <button class="btn btn-sm btn-primary" @click="saveNewPartType()"
+                        :disabled="!newPartTypeForm.name.trim()">Add</button>
+                <button class="btn btn-sm btn-ghost" @click="showNewPartTypeForm = false">Cancel</button>
+              </div>
+            </div>
+
+            <!-- Outgoing part matching -->
+            <div x-show="outgoingCandidates.length > 0 && selectedPartType" class="mt-3">
+              <!-- Heading changes tone based on whether exact matches exist -->
+              <p class="text-sm font-medium mb-1">
+                <template x-if="exactMatchCandidates.length > 0">
+                  <span>Replacing an existing part — select which one:</span>
+                </template>
+                <template x-if="exactMatchCandidates.length === 0">
+                  <span>Are you replacing an existing part?</span>
+                </template>
+              </p>
+              <div class="space-y-1">
+                <template x-for="c in outgoingCandidates" :key="c.id">
+                  <label class="flex items-start gap-2 p-2 rounded-lg border cursor-pointer hover:bg-base-200"
+                         :class="selectedOutgoingId === c.id ? 'border-primary bg-primary/5' : 'border-base-300'">
+                    <input type="radio" class="radio radio-sm radio-primary mt-0.5"
+                           :value="c.id" x-model="selectedOutgoingId">
+                    <div class="flex-1 text-sm">
+                      <div class="flex items-center gap-1.5 flex-wrap">
+                        <span class="font-medium" x-text="c.partName"></span>
+                        <span x-show="c._matchScore >= 3"
+                              class="badge badge-xs badge-primary">exact match</span>
+                        <span class="text-base-content/50 capitalize text-xs"
+                              x-text="(c.partSource || '').replace(/-/g,' ') + (c.brand ? ' · ' + c.brand : '')"></span>
+                      </div>
+                      <div class="text-xs text-base-content/40 mt-0.5"
+                           x-text="'Installed: ' + (c.installDate ? new Date(c.installDate).toLocaleDateString() : '—')"></div>
+                    </div>
+                  </label>
+                </template>
+                <!-- "No replacement" option — de-emphasised with warning when exact matches exist -->
+                <label class="flex items-center gap-2 p-2 rounded-lg border cursor-pointer hover:bg-base-200"
+                       :class="[
+                         selectedOutgoingId === null ? 'border-primary bg-primary/5' : 'border-base-300',
+                         exactMatchCandidates.length > 0 ? 'opacity-60' : ''
+                       ]">
+                  <input type="radio" class="radio radio-sm radio-primary"
+                         :value="null" x-model="selectedOutgoingId">
+                  <span class="text-sm flex items-center gap-1">
+                    <template x-if="exactMatchCandidates.length > 0">
+                      <span>⚠️ No — add as a new separate record (creates duplicate)</span>
+                    </template>
+                    <template x-if="exactMatchCandidates.length === 0">
+                      <span>No — this is a new addition</span>
+                    </template>
+                  </span>
+                </label>
+              </div>
+            </div>
+
+            <!-- Date -->
+            <div class="form-control mt-2">
+              <label class="label"><span class="label-text">Date</span></label>
+              <input type="date" class="input input-bordered w-full" x-model="installDate">
+            </div>
+
+            <!-- Nudge chips -->
+            <div x-show="nudgeItems.length > 0" class="mt-3">
+              <p class="text-xs text-base-content/50 mb-1">Also due on this vehicle:</p>
+              <div class="flex flex-wrap gap-1.5">
+                <template x-for="n in nudgeItems" :key="n.id">
+                  <button class="nudge-chip text-xs"
+                          @click="selectedPartType = null; partTypeSearch = ''; _selectPartType(n._partType || {id: n.partTypeId, name: n.partName, category: n._partType?.category})">
+                    <span class="badge badge-xs" :class="urgBadge(n._due.urgency)"></span>
+                    <span x-text="n.partName + ': ' + fmtDue(n._due)"></span>
+                  </button>
+                </template>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div><!-- /step 1 -->
+
+      <!-- ── STEP 2: Service Details ── -->
+      <div x-show="step === 2" class="wizard-step-enter space-y-3">
+
+        <!-- Odometer -->
+        <div class="card bg-base-100 shadow-sm">
+          <div class="card-body">
+            <h2 class="card-title text-base">Odometer Reading</h2>
+            <p class="text-sm text-base-content/60">Optional — improves predictions.</p>
+
+            <div x-show="odometerSuggested" class="alert alert-info py-2 text-sm flex items-center justify-between gap-2">
+              <span>
+                <template x-if="odometerSuggested?.isInterpolated">
+                  <span>Estimated at service date: <strong x-text="fmt(odometerSuggested?.odometer)"></strong> <span class="opacity-60 text-xs">(interpolated)</span></span>
+                </template>
+                <template x-if="!odometerSuggested?.isInterpolated">
+                  <span>Last recorded: <strong x-text="fmt(odometerSuggested?.odometer)"></strong></span>
+                </template>
+              </span>
+              <button class="btn btn-xs flex-shrink-0" @click="useLatestOdometer()">Use this</button>
+            </div>
+
+            <div class="form-control">
+              <input type="number" class="input input-bordered w-full"
+                     :placeholder="odometerSuggested ? String(odometerSuggested.odometer) : 'e.g. 82450'"
+                     x-model="odometerInput" min="0">
+            </div>
+          </div>
+        </div>
+
+        <!-- Outgoing part condition (only when replacing) -->
+        <div class="card bg-base-100 shadow-sm" x-show="outgoingPart">
+          <div class="card-body">
+            <h2 class="card-title text-base">Condition of Removed Part</h2>
+            <p class="text-sm text-base-content/60 mb-3">
+              How was the <strong x-text="outgoingPart?.partName"></strong> you're removing?
+            </p>
+
+            <!-- Quick-select buttons -->
+            <div class="condition-btn-row mb-3">
+              <template x-for="preset in conditionPresets" :key="preset.pct">
+                <button class="btn btn-sm"
+                        :class="outgoingCondition === preset.pct ? preset.colorClass : 'btn-outline'"
+                        @click="setConditionPreset(preset.pct)">
+                  <span x-text="preset.label"></span>
+                  <span class="opacity-60 text-xs" x-text="preset.pct + '%'"></span>
+                </button>
+              </template>
+            </div>
+
+            <!-- Slider -->
+            <div class="text-center mb-2">
+              <span class="text-4xl font-bold" x-text="outgoingCondition + '%'"></span>
+            </div>
+            <input type="range" class="range range-sm w-full" min="0" max="100" step="1"
+                   x-model="outgoingCondition">
+            <div class="flex justify-between text-xs text-base-content/40 mt-0.5">
+              <span>Failed</span><span>Poor</span><span>Fair</span><span>Good</span><span>New</span>
+            </div>
+
+            <div class="form-control mt-3">
+              <textarea class="textarea textarea-bordered w-full text-sm"
+                        placeholder="Notes on condition (optional)"
+                        x-model="outgoingConditionNotes" rows="2"></textarea>
+            </div>
+          </div>
+        </div>
+
+        <!-- New part details -->
+        <div class="card bg-base-100 shadow-sm">
+          <div class="card-body">
+            <h2 class="card-title text-base">New Part Details</h2>
+
+            <!-- Source -->
+            <div class="form-control">
+              <label class="label"><span class="label-text">Part Source</span></label>
+              <div class="flex flex-wrap gap-2">
+                <template x-for="src in ['oem-genuine','aftermarket','generic']" :key="src">
+                  <label class="flex items-center gap-1.5 cursor-pointer p-2 rounded-lg border"
+                         :class="partSource === src ? 'border-primary bg-primary/5' : 'border-base-300 hover:bg-base-200'">
+                    <input type="radio" class="radio radio-xs radio-primary"
+                           :value="src" x-model="partSource">
+                    <span class="text-sm" x-text="sourceLabel(src)"></span>
+                  </label>
+                </template>
+              </div>
+            </div>
+
+            <!-- Brand -->
+            <div class="form-control" x-show="partSource === 'aftermarket' || partSource === 'oem-genuine'">
+              <label class="label">
+                <span class="label-text">Brand</span>
+                <span class="label-text-alt text-error" x-show="partSource === 'aftermarket'">Required</span>
+                <span class="label-text-alt text-base-content/50" x-show="partSource === 'oem-genuine'">Optional</span>
+              </label>
+              <input type="text" class="input input-bordered w-full"
+                     placeholder="e.g. Toyota, NGK, Denso"
+                     x-model="brand">
+            </div>
+
+            <!-- Part number -->
+            <div class="form-control">
+              <label class="label">
+                <span class="label-text">Part Number</span>
+                <span x-show="epcData?.partNumbers?.length" class="epc-label">EPC suggestion</span>
+              </label>
+              <div x-show="epcData?.partNumbers?.length > 1" class="mb-1">
+                <select class="select select-bordered select-sm w-full"
+                        @change="partNumber = $event.target.value">
+                  <option value="">— Select from EPC —</option>
+                  <template x-for="p in (epcData?.partNumbers || [])" :key="p.partNumber">
+                    <option :value="p.partNumber"
+                            x-text="p.partNumber + ' (' + (p.years || '') + ') ' + (p.description || '')"></option>
+                  </template>
+                </select>
+              </div>
+              <input type="text" class="input input-bordered w-full"
+                     placeholder="e.g. 90915-YZZD3"
+                     x-model="partNumber">
+            </div>
+
+            <!-- Variant picker -->
+            <div class="form-control" x-show="hasVariants">
+              <label class="label">
+                <span class="label-text">Grade / Type</span>
+                <span class="label-text-alt text-base-content/50 text-xs">Interval updates automatically</span>
+              </label>
+              <div class="flex flex-wrap gap-2">
+                <template x-for="v in partVariants" :key="v.label">
+                  <label class="flex items-center gap-1.5 cursor-pointer p-2 rounded-lg border"
+                         :class="grade === v.label ? 'border-primary bg-primary/5' : 'border-base-300 hover:bg-base-200'">
+                    <input type="radio" class="radio radio-xs radio-primary"
+                           :value="v.label" x-model="grade"
+                           @change="_applyVariantIntervals()">
+                    <div>
+                      <div class="text-sm font-medium" x-text="v.label"></div>
+                      <div class="text-xs text-base-content/50"
+                           x-text="(v.kmInterval ? (v.kmInterval/1000)+'k km' : '') + (v.kmInterval && v.daysInterval ? ' · ' : '') + (v.daysInterval ? Utils.formatDuration(v.daysInterval) : '')"></div>
+                    </div>
+                  </label>
+                </template>
+              </div>
+            </div>
+
+            <!-- Fluid options -->
+            <template x-if="hasFluidOptions">
+              <div class="space-y-3">
+                <div class="form-control">
+                  <label class="label"><span class="label-text">Fluid Type</span></label>
+                  <select class="select select-bordered w-full" x-model="_fluidSubtype"
+                          @change="_syncFluidGrade()">
+                    <option value="">— Select type —</option>
+                    <template x-for="s in fluidSubtypes" :key="s">
+                      <option :value="s" x-text="s"></option>
+                    </template>
+                  </select>
+                </div>
+                <div class="form-control" x-show="fluidGrades.length > 0">
+                  <label class="label"><span class="label-text">Grade / Specification</span></label>
+                  <select class="select select-bordered w-full" x-model="_fluidGrade"
+                          @change="_syncFluidGrade()">
+                    <option value="">— Select grade —</option>
+                    <template x-for="g in fluidGrades" :key="g">
+                      <option :value="g" x-text="g"></option>
+                    </template>
+                  </select>
+                </div>
+              </div>
+            </template>
+
+            <!-- Costs -->
+            <div class="grid grid-cols-2 gap-3">
+              <div class="form-control">
+                <label class="label"><span class="label-text">Part Cost</span></label>
+                <label class="input input-bordered flex items-center gap-1">
+                  <span class="text-base-content/50 text-sm" x-text="Alpine.store('app').currency"></span>
+                  <input type="number" class="grow" placeholder="0.00" min="0" step="0.01"
+                         x-model="partCost">
+                </label>
+              </div>
+              <div class="form-control">
+                <label class="label"><span class="label-text">Labour Cost</span></label>
+                <label class="input input-bordered flex items-center gap-1">
+                  <span class="text-base-content/50 text-sm" x-text="Alpine.store('app').currency"></span>
+                  <input type="number" class="grow" placeholder="0.00" min="0" step="0.01"
+                         x-model="labourCost">
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Notes -->
+        <div class="card bg-base-100 shadow-sm">
+          <div class="card-body">
+            <h2 class="card-title text-base">Notes <span class="text-sm font-normal text-base-content/50">(optional)</span></h2>
+            <div class="form-control">
+              <textarea class="textarea textarea-bordered w-full" rows="2"
+                        placeholder="e.g. used synthetic blend, noticed slight leak…"
+                        x-model="notes"></textarea>
+            </div>
+          </div>
+        </div>
+
+        <!-- Interval -->
+        <div class="card bg-base-100 shadow-sm">
+          <div class="card-body">
+            <h2 class="card-title text-base">Replacement Interval</h2>
+
+            <div x-show="intervalSource" class="alert alert-info py-2 text-xs">
+              Pre-filled from: <strong x-text="intervalSource"></strong>
+            </div>
+            <div x-show="epcData?.maintenance?.notes" class="alert alert-warning py-2 text-xs"
+                 x-text="epcData?.maintenance?.notes"></div>
+
+            <div class="grid grid-cols-2 gap-3">
+              <div class="form-control">
+                <label class="label"><span class="label-text">Every (km)</span></label>
+                <input type="number" class="input input-bordered w-full"
+                       placeholder="e.g. 10000"
+                       x-model="kmInterval" min="0" step="500">
+              </div>
+              <div class="form-control">
+                <label class="label"><span class="label-text">Or every (time)</span></label>
+                <div class="flex gap-2 items-center">
+                  <input type="number" class="input input-bordered w-20 text-center"
+                         placeholder="0" x-model="daysIntervalYears" min="0" step="1">
+                  <span class="text-sm text-base-content/60">yr</span>
+                  <input type="number" class="input input-bordered w-20 text-center"
+                         placeholder="0" x-model="daysIntervalMonths" min="0" step="1">
+                  <span class="text-sm text-base-content/60">mo</span>
+                </div>
+              </div>
+            </div>
+            <p class="text-xs text-base-content/40 mt-1">Whichever threshold comes first triggers a service alert.</p>
+
+            <!-- Scope toggle -->
+            <div class="mt-3">
+              <label class="label"><span class="label-text font-medium">Apply interval to:</span></label>
+              <div class="flex flex-col gap-1.5">
+                <label class="flex items-start gap-2 p-2.5 rounded-lg border cursor-pointer"
+                       :class="intervalScope === 'install-only' ? 'border-primary bg-primary/5' : 'border-base-300 hover:bg-base-200'">
+                  <input type="radio" class="radio radio-sm radio-primary mt-0.5"
+                         value="install-only" x-model="intervalScope">
+                  <div>
+                    <div class="text-sm font-medium">This installation only</div>
+                    <div class="text-xs text-base-content/50">Future replacements use the original default.</div>
+                  </div>
+                </label>
+                <label class="flex items-start gap-2 p-2.5 rounded-lg border cursor-pointer"
+                       :class="intervalScope === 'update-default' ? 'border-primary bg-primary/5' : 'border-base-300 hover:bg-base-200'">
+                  <input type="radio" class="radio radio-sm radio-primary mt-0.5"
+                         value="update-default" x-model="intervalScope">
+                  <div>
+                    <div class="text-sm font-medium">Update default for <span x-text="selectedPartType?.name"></span></div>
+                    <div class="text-xs text-base-content/50">This becomes the new default going forward.</div>
+                  </div>
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /step 2 -->
+
+      <!-- ── STEP 3: Review & save ── -->
+      <div x-show="step === 3" class="wizard-step-enter">
+        <div class="card bg-base-100 shadow-sm">
+          <div class="card-body">
+            <h2 class="card-title">Review &amp; Save</h2>
+
+            <div class="overflow-x-auto">
+              <table class="table table-sm">
+                <tbody>
+                  <tr><td class="font-medium text-base-content/60 w-40">Vehicle</td><td x-text="Alpine.store('app').currentVehicle?.name"></td></tr>
+                  <tr><td class="font-medium text-base-content/60">Part</td><td x-text="selectedPartType?.name"></td></tr>
+                  <tr><td class="font-medium text-base-content/60">Date</td><td x-text="fmtDate(installDate)"></td></tr>
+                  <tr x-show="odometerInput"><td class="font-medium text-base-content/60">Odometer</td><td x-text="fmt(Number(odometerInput))"></td></tr>
+                  <tr x-show="outgoingPart"><td class="font-medium text-base-content/60">Removed Part</td><td x-text="(outgoingPart?.partName || '') + ' (' + outgoingCondition + '% condition)'"></td></tr>
+                  <tr><td class="font-medium text-base-content/60">Source</td><td x-text="sourceLabel(partSource)"></td></tr>
+                  <tr x-show="brand"><td class="font-medium text-base-content/60">Brand</td><td x-text="brand"></td></tr>
+                  <tr x-show="partNumber"><td class="font-medium text-base-content/60">Part #</td><td x-text="partNumber"></td></tr>
+                  <tr x-show="grade"><td class="font-medium text-base-content/60">Grade / Type</td><td x-text="grade"></td></tr>
+                  <tr x-show="partCost"><td class="font-medium text-base-content/60">Part Cost</td><td x-text="fmtCur(Number(partCost))"></td></tr>
+                  <tr x-show="labourCost"><td class="font-medium text-base-content/60">Labour</td><td x-text="fmtCur(Number(labourCost))"></td></tr>
+                  <tr><td class="font-medium text-base-content/60">Interval</td>
+                      <td>
+                        <span x-show="kmInterval" x-text="fmt(Number(kmInterval))"></span>
+                        <span x-show="kmInterval && daysInterval"> / </span>
+                        <span x-show="daysInterval" x-text="Utils.formatDuration(Number(daysInterval))"></span>
+                        <span class="badge badge-xs badge-ghost ml-1"
+                              x-text="intervalScope === 'install-only' ? 'this install only' : 'updating default'"></span>
+                      </td>
+                  </tr>
+                  <tr><td class="font-medium text-base-content/60">Next Due</td><td x-text="reviewNextDue"></td></tr>
+                  <tr x-show="notes"><td class="font-medium text-base-content/60">Notes</td><td x-text="notes"></td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div x-show="saveError" class="alert alert-error py-2 text-sm mt-3" x-text="saveError"></div>
+          </div>
+        </div>
+      </div><!-- /step 3 -->
+
+      <!-- Navigation buttons -->
+      <div class="flex items-center justify-between mt-4">
+        <button class="btn btn-ghost" @click="step > 1 ? goPrev() : Alpine.store('app').navigate('vehicle-detail')">
+          ← <span x-text="step > 1 ? 'Back' : 'Cancel'"></span>
+        </button>
+        <div class="text-xs text-base-content/40">Step <span x-text="step"></span> of 3</div>
+        <template x-if="step < 3">
+          <button class="btn btn-primary" @click="goNext()" :disabled="!canProceed">
+            Next →
+          </button>
+        </template>
+        <template x-if="step === 3">
+          <button class="btn btn-success" @click="save()" :disabled="saving">
+            <span x-show="saving" class="loading loading-spinner loading-sm"></span>
+            <span x-text="saving ? 'Saving…' : 'Save Record'"></span>
+          </button>
+        </template>
+      </div>
+    </div><!-- /wizard -->
+
+    <!-- ── SETTINGS ───────────────────────────────────────────────── -->
+    <div x-show="Alpine.store('app').currentView === 'settings'"
+         x-data="settingsView"
+         x-init="initSettings(); refreshPartsDbVersion()"
+         class="view-enter">
+
+      <div class="text-sm breadcrumbs mb-4">
+        <ul>
+          <li><a href="#dashboard">Dashboard</a></li>
+          <li>Settings</li>
+        </ul>
+      </div>
+
+      <div class="flex gap-1 mb-6 bg-base-200 p-1 rounded-xl w-fit">
+        <button class="px-4 py-1.5 rounded-lg text-sm font-medium transition-all"
+                :class="activeTab === 'vehicles'
+                  ? 'bg-base-100 shadow-sm text-base-content'
+                  : 'text-base-content/50 hover:text-base-content'"
+                @click="activeTab = 'vehicles'">Vehicles</button>
+        <button class="px-4 py-1.5 rounded-lg text-sm font-medium transition-all"
+                :class="activeTab === 'preferences'
+                  ? 'bg-base-100 shadow-sm text-base-content'
+                  : 'text-base-content/50 hover:text-base-content'"
+                @click="activeTab = 'preferences'">Preferences</button>
+        <button class="px-4 py-1.5 rounded-lg text-sm font-medium transition-all"
+                :class="activeTab === 'data'
+                  ? 'bg-base-100 shadow-sm text-base-content'
+                  : 'text-base-content/50 hover:text-base-content'"
+                @click="activeTab = 'data'">Data</button>
+      </div>
+
+      <!-- Vehicles tab -->
+      <div x-show="activeTab === 'vehicles'">
+        <div class="flex justify-between items-center mb-3">
+          <h2 class="font-semibold">Your Vehicles</h2>
+          <button class="btn btn-sm btn-primary" @click="openAddVehicle()">+ Add Vehicle</button>
+        </div>
+
+        <div x-show="vehicles.length === 0" class="text-center text-base-content/50 py-10">
+          No vehicles yet. Add one to get started.
+        </div>
+
+        <div class="overflow-x-auto rounded-xl border border-base-200" x-show="vehicles.length > 0">
+          <table class="table table-zebra">
+            <thead class="bg-base-200/60 text-xs">
+              <tr><th>Vehicle</th><th>Year</th><th>VIN / Notes</th><th></th></tr>
+            </thead>
+            <tbody>
+              <template x-for="v in vehicles" :key="v.id">
+                <tr class="hover:bg-base-200/30 transition-colors">
+                  <td>
+                    <div class="flex items-center gap-3">
+                      <div class="w-2 h-10 rounded-full flex-shrink-0" :style="'background:' + (v.color || '#6b7280')"></div>
+                      <div>
+                        <div class="font-semibold" x-text="v.name"></div>
+                        <div class="text-xs text-base-content/50" x-text="v.make + ' ' + v.model"></div>
+                      </div>
+                    </div>
+                  </td>
+                  <td class="text-sm tabular-nums" x-text="v.year"></td>
+                  <td class="text-xs text-base-content/50 max-w-[200px] truncate"
+                      x-text="v.vin || v.notes || '—'"></td>
+                  <td>
+                    <div class="flex gap-1 justify-end">
+                      <button class="btn btn-xs btn-ghost" @click="openEditVehicle(v)" title="Edit vehicle"
+                              x-html="Strings.icon('pencil', 'w-3.5 h-3.5')"></button>
+                      <button class="btn btn-xs btn-ghost text-error opacity-40 hover:opacity-100 transition-opacity"
+                              @click="confirmDeleteVehicle(v)" title="Delete vehicle"
+                              x-html="Strings.icon('trash', 'w-3.5 h-3.5')"></button>
+                    </div>
+                  </td>
+                </tr>
+              </template>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Preferences tab -->
+      <div x-show="activeTab === 'preferences'" class="space-y-4">
+        <div class="form-control">
+          <label class="label"><span class="label-text font-medium">Distance Unit</span></label>
+          <div class="join">
+            <button class="btn join-item" :class="distanceUnit === 'km' ? 'btn-primary' : 'btn-outline'"
+                    @click="setUnit('km')">Kilometres (km)</button>
+            <button class="btn join-item" :class="distanceUnit === 'miles' ? 'btn-primary' : 'btn-outline'"
+                    @click="setUnit('miles')">Miles</button>
+          </div>
+        </div>
+        <div class="form-control">
+          <label class="label"><span class="label-text font-medium">Currency</span></label>
+          <select class="select select-bordered w-full" @change="setCurrency($event.target.value)">
+            <template x-for="c in currencies" :key="c">
+              <option :value="c" :selected="c === Alpine.store('app').currency" x-text="c"></option>
+            </template>
+          </select>
+          <label class="label"><span class="label-text-alt text-base-content/50">Changes how costs are displayed — no currency conversion is performed.</span></label>
+        </div>
+        <div class="form-control">
+          <label class="label"><span class="label-text font-medium">Theme</span></label>
+          <div class="join">
+            <button class="btn join-item" :class="theme === 'light' ? 'btn-primary' : 'btn-outline'"
+                    @click="setTheme('light')">☀️ Light</button>
+            <button class="btn join-item" :class="theme === 'dark' ? 'btn-primary' : 'btn-outline'"
+                    @click="setTheme('dark')">🌙 Dark</button>
+          </div>
+        </div>
+
+        <!-- Alert thresholds -->
+        <div>
+          <p class="label-text font-medium mb-2">Alert Thresholds <span class="text-xs font-normal text-base-content/50">(Due Soon badge)</span></p>
+          <div class="grid grid-cols-3 gap-3">
+            <div class="form-control">
+              <label class="label pb-1"><span class="label-text text-xs">Remaining life</span></label>
+              <label class="input input-bordered input-sm flex items-center gap-1">
+                <input type="number" class="grow w-12 text-center" min="1"
+                       :value="alertThresholds.dueSoonDays"
+                       @change="setAlertThreshold('dueSoonDays', $event.target.value)">
+                <span class="text-xs text-base-content/50">days</span>
+              </label>
+            </div>
+            <div class="form-control">
+              <label class="label pb-1"><span class="label-text text-xs">Remaining mileage</span></label>
+              <label class="input input-bordered input-sm flex items-center gap-1">
+                <input type="number" class="grow w-12 text-center" min="1"
+                       :value="alertThresholds.dueSoonKm"
+                       @change="setAlertThreshold('dueSoonKm', $event.target.value)">
+                <span class="text-xs text-base-content/50" x-text="Alpine.store('app').distanceUnit"></span>
+              </label>
+            </div>
+            <div class="form-control">
+              <label class="label pb-1"><span class="label-text text-xs">Est. life from mileage</span></label>
+              <label class="input input-bordered input-sm flex items-center gap-1">
+                <input type="number" class="grow w-12 text-center" min="1"
+                       :value="alertThresholds.dueSoonKmDays"
+                       @change="setAlertThreshold('dueSoonKmDays', $event.target.value)">
+                <span class="text-xs text-base-content/50">days</span>
+              </label>
+            </div>
+          </div>
+          <p class="text-xs text-base-content/40 mt-1">Upcoming badge fires at 2× these values.</p>
+        </div>
+
+        <!-- Condition traffic-light thresholds -->
+        <div>
+          <p class="label-text font-medium mb-2">Condition Traffic Lights <span class="text-xs font-normal text-base-content/50">(part health %)</span></p>
+          <div class="grid grid-cols-2 gap-3">
+            <div class="form-control">
+              <label class="label pb-1"><span class="label-text text-xs">🟡 Amber below</span></label>
+              <label class="input input-bordered input-sm flex items-center gap-1">
+                <input type="number" class="grow w-12 text-center" min="1" max="99"
+                       :value="alertThresholds.conditionAmber"
+                       @change="setAlertThreshold('conditionAmber', $event.target.value)">
+                <span class="text-xs text-base-content/50">%</span>
+              </label>
+            </div>
+            <div class="form-control">
+              <label class="label pb-1"><span class="label-text text-xs">🔴 Red below</span></label>
+              <label class="input input-bordered input-sm flex items-center gap-1">
+                <input type="number" class="grow w-12 text-center" min="1" max="99"
+                       :value="alertThresholds.conditionRed"
+                       @change="setAlertThreshold('conditionRed', $event.target.value)">
+                <span class="text-xs text-base-content/50">%</span>
+              </label>
+            </div>
+          </div>
+          <p class="text-xs text-base-content/40 mt-1">Green ≥ amber threshold. Amber ≥ red threshold. Red below that.</p>
+        </div>
+
+      </div>
+
+      <!-- Data tab -->
+      <div x-show="activeTab === 'data'" class="space-y-4">
+        <div class="card bg-base-100 shadow-sm">
+          <div class="card-body p-4">
+            <h3 class="font-semibold mb-1">Export / Import</h3>
+            <p class="text-sm text-base-content/60 mb-3">Save a full backup of all vehicles, parts, and odometer history.</p>
+            <button class="btn btn-outline w-full mb-2" @click="exportData()">⬇ Export Database (JSON)</button>
+            <label class="btn btn-outline w-full cursor-pointer">
+              ⬆ Import Database (JSON)
+              <input type="file" accept=".json" class="hidden" @change="importData($event)">
+            </label>
+            <div x-show="importError" class="alert alert-error py-2 text-sm mt-2" x-text="importError"></div>
+            <div x-show="importSuccess" class="alert alert-success py-2 text-sm mt-2" x-text="importSuccess"></div>
+          </div>
+        </div>
+
+        <div class="card bg-base-100 shadow-sm">
+          <div class="card-body p-4">
+            <h3 class="font-semibold mb-1">Parts Database (Toyota / Daihatsu)</h3>
+            <p class="text-sm text-base-content/60 mb-2">
+              Current version: <strong x-text="partsDbVersion"></strong>
+            </p>
+            <p class="text-sm text-base-content/60 mb-3">The app auto-checks for updates weekly. You can also update manually.</p>
+            <button class="btn btn-outline w-full" @click="checkPartsDbUpdate()">🔄 Check for Updates Now</button>
+            <div x-show="epcStatus" class="text-sm mt-2 text-base-content/70" x-text="epcStatus"></div>
+          </div>
+        </div>
+
+        <div class="card bg-base-100 shadow-sm border border-error/30">
+          <div class="card-body p-4">
+            <h3 class="font-semibold text-error mb-1">Danger Zone</h3>
+            <p class="text-sm text-base-content/60 mb-3">Permanently delete all data. This cannot be undone.</p>
+            <button class="btn btn-error btn-outline w-full" @click="clearAllData()">🗑 Clear All Data</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Add / Edit Vehicle modal -->
+      <dialog id="vehicleModal" class="modal">
+        <div class="modal-box max-w-md">
+            <h3 class="font-bold text-lg mb-4"
+                x-text="vehicleForm.id ? 'Edit Vehicle' : 'Add Vehicle'"></h3>
+            <div class="space-y-3">
+              <div class="form-control">
+                <label class="label"><span class="label-text">Nickname / Label <span class="text-error">*</span></span></label>
+                <input type="text" class="input input-bordered w-full"
+                       placeholder="e.g. Daily Driver, Work Ute"
+                       x-model="vehicleForm.name">
+              </div>
+              <div class="grid grid-cols-2 gap-2">
+                <div class="form-control">
+                  <label class="label"><span class="label-text">Make <span class="text-error">*</span></span></label>
+                  <input type="text" class="input input-bordered w-full" placeholder="Toyota"
+                         x-model="vehicleForm.make">
+                </div>
+                <div class="form-control">
+                  <label class="label"><span class="label-text">Model <span class="text-error">*</span></span></label>
+                  <input type="text" class="input input-bordered w-full" placeholder="Corolla"
+                         x-model="vehicleForm.model">
+                </div>
+              </div>
+              <div class="grid grid-cols-2 gap-2">
+                <div class="form-control">
+                  <label class="label"><span class="label-text">Year <span class="text-error">*</span></span></label>
+                  <input type="number" class="input input-bordered w-full"
+                         placeholder="2019" min="1900" max="2030"
+                         x-model="vehicleForm.year">
+                </div>
+                <div class="form-control">
+                  <label class="label"><span class="label-text">Colour</span></label>
+                  <input type="color" class="input input-bordered w-full h-12 p-1 cursor-pointer"
+                         x-model="vehicleForm.color">
+                </div>
+              </div>
+              <div class="form-control">
+                <label class="label"><span class="label-text">VIN (optional)</span></label>
+                <input type="text" class="input input-bordered w-full"
+                       placeholder="17-character VIN"
+                       x-model="vehicleForm.vin" maxlength="17">
+              </div>
+              <div class="form-control">
+                <label class="label"><span class="label-text">Notes</span></label>
+                <textarea class="textarea textarea-bordered w-full" rows="2"
+                          x-model="vehicleForm.notes" placeholder="Engine variant, mods, etc."></textarea>
+              </div>
+              <div x-show="vehicleFormError" class="alert alert-error py-2 text-sm" x-text="vehicleFormError"></div>
+            </div>
+            <div class="modal-action">
+              <button class="btn btn-ghost" onclick="document.getElementById('vehicleModal').close()">Cancel</button>
+              <button class="btn btn-primary" @click="saveVehicle()">Save</button>
+            </div>
+          </div>
+        <form method="dialog" class="modal-backdrop"><button>close</button></form>
+      </dialog>
+    </div><!-- /settings -->
+
+  </main>
+
+  <!-- ══ QUICK ODOMETER MODAL (global — accessible from any view) ════ -->
+  <dialog id="quickOdoModal" class="modal"
+          @open-quick-odo.window="open()"
+          x-data="{
+            date: '',
+            odometer: '',
+            notes: '',
+            error: '',
+            async open() {
+              this.date = Utils.toISODate(new Date());
+              const latest = await DB.getLatestOdometer(Alpine.store('app').currentVehicleId);
+              this.odometer = latest ? String(latest.odometer) : '';
+              this.error = '';
+              document.getElementById('quickOdoModal').showModal();
+            },
+            async save() {
+              const odo = Number(this.odometer);
+              if (!this.date)       { this.error = 'Date is required.'; return; }
+              if (!odo || odo <= 0) { this.error = 'Enter a valid odometer reading.'; return; }
+              const vid = Alpine.store('app').currentVehicleId;
+              const err = await DB.validateOdometerReading(vid, this.date, odo);
+              if (err) { this.error = err; return; }
+              await DB.addOdometerReading({
+                vehicleId: vid,
+                date: this.date,
+                odometer: odo,
+                source: 'manual',
+                notes: this.notes || null,
+              });
+              await DB.reinterpolateOdometers(vid);
+              document.getElementById('quickOdoModal').close();
+              Alpine.store('app').notify('Odometer reading saved.', 'success');
+              window.dispatchEvent(new CustomEvent('vehicle-changed'));
+            }
+          }">
+    <div class="modal-box max-w-sm">
+      <h3 class="font-bold text-lg">Log Odometer Reading</h3>
+      <p class="text-sm text-base-content/60 mb-4"
+         x-text="Alpine.store('app').currentVehicle?.name || ''"></p>
+      <div class="space-y-3">
+        <div class="form-control">
+          <label class="label"><span class="label-text">Date</span></label>
+          <input type="date" class="input input-bordered w-full" x-model="date">
+        </div>
+        <div class="form-control">
+          <label class="label"><span class="label-text">Odometer (km)</span></label>
+          <input type="number" class="input input-bordered w-full" placeholder="e.g. 82450"
+                 x-model="odometer" min="0">
+        </div>
+        <div class="form-control">
+          <label class="label"><span class="label-text">Notes (optional)</span></label>
+          <input type="text" class="input input-bordered w-full" x-model="notes"
+                 placeholder="e.g. Pre-service reading">
+        </div>
+        <div x-show="error" class="alert alert-error py-2 text-sm" x-text="error"></div>
+      </div>
+      <div class="modal-action">
+        <button class="btn btn-ghost" onclick="document.getElementById('quickOdoModal').close()">Cancel</button>
+        <button class="btn btn-primary" @click="save()">Save</button>
+      </div>
+    </div>
+    <form method="dialog" class="modal-backdrop"><button>close</button></form>
+  </dialog>
+
+  <!-- ══ TOAST NOTIFICATIONS ══════════════════════════════════════════ -->
+  <div class="toast toast-end z-50 pointer-events-none">
+    <template x-for="toast in Alpine.store('app').toasts" :key="toast.id">
+      <div class="alert shadow-lg pointer-events-auto max-w-sm flex items-start gap-3"
+           :class="{
+             'alert-success': toast.type === 'success',
+             'alert-error':   toast.type === 'error',
+             'alert-warning': toast.type === 'warning',
+             'alert-info':    toast.type === 'info',
+           }">
+        <span class="text-sm flex-1 leading-snug" x-text="toast.message"></span>
+        <button class="btn btn-xs btn-ghost btn-circle flex-shrink-0 opacity-70 hover:opacity-100"
+                @click="Alpine.store('app').dismissToast(toast.id)"
+                aria-label="Dismiss">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none"
+               viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+    </template>
+  </div>
+
+</body>
+</html>
