@@ -76,7 +76,8 @@ document.addEventListener('alpine:init', () => {
     get currency()     { return Alpine.store('app').currency; },
     set currency(v)    { Alpine.store('app').setCurrency(v); },
     get theme()        { return Alpine.store('app').theme; },
-    get locale()       { return Alpine.store('app').locale; },
+    get locale()         { return Alpine.store('app').locale; },
+    get localeOverride() { return Alpine.store('app').localeOverride; },
 
     setUnit(u)       { Alpine.store('app').setDistanceUnit(u); },
     setCurrency(c)   { Alpine.store('app').setCurrency(c); },

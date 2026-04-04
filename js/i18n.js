@@ -220,6 +220,7 @@ window.I18n = (() => {
     'settings.pref.themeLight': '☀️ Light',
     'settings.pref.themeDark': '🌙 Dark',
     'settings.pref.language': 'Language',
+    'settings.pref.languageAuto': 'Use browser default',
     'settings.pref.alertThresholds': 'Alert Thresholds',
     'settings.pref.dueSoonBadge': '(Due Soon badge)',
     'settings.pref.remainingLife': 'Remaining life',
@@ -534,6 +535,7 @@ window.I18n = (() => {
     'settings.pref.themeLight': '☀️ Cerah',
     'settings.pref.themeDark': '🌙 Gelap',
     'settings.pref.language': 'Bahasa',
+    'settings.pref.languageAuto': 'Guna tetapan pelayar',
     'settings.pref.alertThresholds': 'Had Amaran',
     'settings.pref.dueSoonBadge': '(lencana Hampir Tiba)',
     'settings.pref.remainingLife': 'Hayat tinggal',
@@ -813,6 +815,7 @@ window.I18n = (() => {
     'settings.pref.themeLight': '☀️ 浅色',
     'settings.pref.themeDark': '🌙 深色',
     'settings.pref.language': '语言',
+    'settings.pref.languageAuto': '跟随浏览器设置',
     'settings.pref.alertThresholds': '提醒阈值',
     'settings.pref.dueSoonBadge': '（即将到期标签）',
     'settings.pref.remainingLife': '剩余寿命',
@@ -1091,6 +1094,7 @@ window.I18n = (() => {
     'settings.pref.themeLight': '☀️ 淺色',
     'settings.pref.themeDark': '🌙 深色',
     'settings.pref.language': '語言',
+    'settings.pref.languageAuto': '跟隨瀏覽器設定',
     'settings.pref.alertThresholds': '提醒閾值',
     'settings.pref.dueSoonBadge': '（即將到期標籤）',
     'settings.pref.remainingLife': '剩餘壽命',
@@ -1258,11 +1262,16 @@ window.I18n = (() => {
 
   // ── Locale management ──────────────────────────────────────────────────────
   function setLocale(code) {
-    if (!locales[code]) return;
-    _locale = code;
-    localStorage.setItem('vat_locale', code);
+    if (code === '') {
+      localStorage.removeItem('vat_locale');
+      _locale = detectLocale();
+    } else {
+      if (!locales[code]) return;
+      _locale = code;
+      localStorage.setItem('vat_locale', code);
+    }
     // Update html[lang] for accessibility
-    const htmlLang = code === 'zh-Hans' ? 'zh-Hans' : code === 'zh-Hant' ? 'zh-Hant' : code;
+    const htmlLang = _locale === 'zh-Hans' ? 'zh-Hans' : _locale === 'zh-Hant' ? 'zh-Hant' : _locale;
     document.documentElement.setAttribute('lang', htmlLang);
   }
 
@@ -1283,6 +1292,7 @@ window.I18n = (() => {
   // ── Public API ─────────────────────────────────────────────────────────────
   return {
     get locale() { return _locale; },
+    get storedLocale() { return localStorage.getItem('vat_locale') || ''; },
     t,
     tn,
     setLocale,

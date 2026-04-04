@@ -14,6 +14,7 @@ document.addEventListener('alpine:init', () => {
     distanceUnit: 'km',
     currency: 'MYR',
     locale: I18n.locale,
+    localeOverride: I18n.storedLocale,
     alertThresholds: { dueSoonDays: 30, dueSoonKm: 1000, dueSoonKmDays: 30, conditionAmber: 10, conditionRed: 5 },
     toasts: [],
     _toastSeq: 0,
@@ -112,7 +113,8 @@ document.addEventListener('alpine:init', () => {
 
     setLocale(code) {
       I18n.setLocale(code);
-      this.locale = code;
+      this.locale = I18n.locale;
+      this.localeOverride = I18n.storedLocale;
     },
 
     setAlertThresholds(t) {
