@@ -16,6 +16,7 @@ document.addEventListener('alpine:init', () => {
     alertThresholds: { dueSoonDays: 30, dueSoonKm: 1000, dueSoonKmDays: 30, conditionAmber: 10, conditionRed: 5 },
     toasts: [],
     _toastSeq: 0,
+    showBackupNudge: false,
 
     // ── Init ───────────────────────────────────────────────────────
     async init() {
@@ -46,6 +47,9 @@ document.addEventListener('alpine:init', () => {
 
       // EPC auto-update check (weekly)
       this._maybeUpdatePartsDb();
+
+      // Backup reminder (every 30 days)
+      this._checkBackupNudge();
     },
 
     // ── Vehicles ───────────────────────────────────────────────────
@@ -121,6 +125,20 @@ document.addEventListener('alpine:init', () => {
 
     dismissToast(id) {
       this.toasts = this.toasts.filter(t => t.id !== id);
+    },
+
+    // ── Backup nudge (30-day reminder) ────────────────────────────
+    _checkBackupNudge() {
+      const last = localStorage.getItem('vat_lastBackupReminder');
+      const THIRTY_DAYS = 30 * 24 * 3600 * 1000;
+      if (!last || Date.now() - Number(last) > THIRTY_DAYS) {
+        this.showBackupNudge = true;
+      }
+    },
+
+    dismissBackupNudge() {
+      this.showBackupNudge = false;
+      localStorage.setItem('vat_lastBackupReminder', String(Date.now()));
     },
 
     // ── EPC weekly refresh ─────────────────────────────────────────

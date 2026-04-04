@@ -4,6 +4,9 @@ Client-side vehicle maintenance tracker. All data lives in your browser's Indexe
 
 **Open `index.html` directly in any browser. No installation or local server needed.**
 
+> [!WARNING]
+> All data is stored only in your browser's IndexedDB. It will be lost if you clear browser data, switch browsers, or reinstall your OS. **Export a backup regularly** via Settings → Data → Export.
+
 ## Features
 
 - Multi-vehicle fleet with per-vehicle service history
@@ -108,7 +111,9 @@ Key decisions made during sessions:
 1. **No build step.** No `import`/`export`, no TypeScript, no bundler. All JS is plain ES2020 globals. The `scripts/` directory is Node.js tooling only — it does not touch production code.
 2. **No backend.** Everything is client-side. Persist to IndexedDB via `window.DB`. Fetch only same-origin files.
 3. **No `max-w-*` on `<main>`.** The layout is `class="w-full px-4 py-6"`. Parts tables need full horizontal space.
-4. **Script load order matters.** `strings.js` → `utils.js` → `db.js` → `data/parts-db.js` → `epc.js` → views → `app.js` → Alpine (defer). Each file exposes a global (`window.Strings`, `window.Utils`, `window.DB`, `window.EPC`).
+4. **Script load order matters.** `version.js` → `strings.js` → `utils.js` → `db.js` → `data/parts-db.js` → `epc.js` → views → `app.js` → Alpine (defer). Each file exposes a global (`window.APP_VERSION`, `window.Strings`, `window.Utils`, `window.DB`, `window.EPC`).
+
+5. **Bumping the version:** edit `js/version.js` (the only place the version string lives), commit, then tag. The navbar reads `window.APP_VERSION` at runtime — nothing else needs changing.
 
 **Key patterns:**
 

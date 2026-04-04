@@ -28,6 +28,7 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 
   <!-- App scripts (sync, before Alpine defer) -->
+  <script src="js/version.js"></script>
   <script src="js/strings.js?v=20260403k"></script>
   <script src="js/utils.js?v=20260403w"></script>
   <script src="js/db.js?v=20260403k"></script>
@@ -53,6 +54,7 @@
          href="#dashboard">
         <span class="text-primary" x-html="Strings.icon('wrench', 'w-5 h-5')"></span>
         <span class="font-extrabold text-base tracking-tight">ShinyShitbox</span>
+        <span class="text-xs opacity-40 font-mono hidden sm:inline" x-text="APP_VERSION"></span>
       </a>
     </div>
 
@@ -72,6 +74,27 @@
          x-html="Strings.icon('settings', 'w-5 h-5')">
       </a>
     </div>
+  </div>
+
+  <!-- ══ BACKUP NUDGE ════════════════════════════════════════════════ -->
+  <!-- Shown once every 30 days as a reminder that data lives only in this browser -->
+  <div x-show="Alpine.store('app').showBackupNudge"
+       x-transition.opacity
+       class="alert alert-warning rounded-none border-x-0 border-t-0 py-2 px-4 flex items-center gap-3">
+    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 shrink-0" fill="none"
+         viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+      <path stroke-linecap="round" stroke-linejoin="round"
+            d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+    </svg>
+    <span class="text-sm flex-1">
+      Your data is stored only in this browser. Clear browser data and it's gone.
+      <a href="#settings" class="underline font-medium"
+         @click="Alpine.store('app').navigate('settings'); Alpine.store('app').dismissBackupNudge()">
+        Export a backup
+      </a> from Settings → Data.
+    </span>
+    <button class="btn btn-ghost btn-xs shrink-0"
+            @click="Alpine.store('app').dismissBackupNudge()">Dismiss</button>
   </div>
 
   <!-- ══ MAIN CONTENT ══════════════════════════════════════════════════ -->

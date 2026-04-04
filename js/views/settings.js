@@ -105,6 +105,7 @@ document.addEventListener('alpine:init', () => {
         a.click();
         URL.revokeObjectURL(url);
         Alpine.store('app').notify('Database exported.', 'success');
+        Alpine.store('app').dismissBackupNudge(); // reset 30-day reminder
       } catch (e) {
         Alpine.store('app').notify('Export failed: ' + e.message, 'error');
       }
