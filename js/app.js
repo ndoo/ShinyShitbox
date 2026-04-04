@@ -13,6 +13,7 @@ document.addEventListener('alpine:init', () => {
     theme: 'light',
     distanceUnit: 'km',
     currency: 'MYR',
+    locale: I18n.locale,
     alertThresholds: { dueSoonDays: 30, dueSoonKm: 1000, dueSoonKmDays: 30, conditionAmber: 10, conditionRed: 5 },
     toasts: [],
     _toastSeq: 0,
@@ -107,6 +108,11 @@ document.addEventListener('alpine:init', () => {
     setCurrency(currency) {
       this.currency = currency;
       localStorage.setItem('vat_currency', currency);
+    },
+
+    setLocale(code) {
+      I18n.setLocale(code);
+      this.locale = code;
     },
 
     setAlertThresholds(t) {

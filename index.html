@@ -29,17 +29,18 @@
 
   <!-- App scripts (sync, before Alpine defer) -->
   <script src="js/version.js"></script>
-  <script src="js/strings.js?v=20260403k"></script>
-  <script src="js/utils.js?v=20260403w"></script>
-  <script src="js/db.js?v=20260403k"></script>
+  <script src="js/i18n.js?v=20260404b"></script>
+  <script src="js/strings.js?v=20260404b"></script>
+  <script src="js/utils.js?v=20260404b"></script>
+  <script src="js/db.js?v=20260404b"></script>
   <!-- Bundled parts DB — loaded as a script so it works when opened via file:// -->
   <script src="data/parts-db.js"></script>
-  <script src="js/epc.js?v=20260403k"></script>
-  <script src="js/views/dashboard.js?v=20260404a"></script>
-  <script src="js/views/vehicle-detail.js?v=20260404a"></script>
-  <script src="js/views/wizard.js?v=20260404a"></script>
-  <script src="js/views/settings.js?v=20260404a"></script>
-  <script src="js/app.js?v=20260404a"></script>
+  <script src="js/epc.js?v=20260404b"></script>
+  <script src="js/views/dashboard.js?v=20260404b"></script>
+  <script src="js/views/vehicle-detail.js?v=20260404b"></script>
+  <script src="js/views/wizard.js?v=20260404b"></script>
+  <script src="js/views/settings.js?v=20260404b"></script>
+  <script src="js/app.js?v=20260404b"></script>
 
   <!-- Alpine.js (defer — initialises after all scripts above are parsed) -->
   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.3/dist/cdn.min.js"></script>
@@ -70,7 +71,7 @@
       </label>
 
       <!-- Settings -->
-      <a class="btn btn-ghost btn-sm btn-circle" href="#settings" title="Settings"
+      <a class="btn btn-ghost btn-sm btn-circle" href="#settings" :title="$t('nav.settings')"
          x-html="Strings.icon('settings', 'w-5 h-5')">
       </a>
     </div>
@@ -87,14 +88,15 @@
             d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
     </svg>
     <span class="text-sm flex-1">
-      Your data is stored only in this browser. Clear browser data and it's gone.
+      <span x-text="$t('nudge.message')"></span>
       <a href="#settings" class="underline font-medium"
-         @click="Alpine.store('app').navigate('settings'); Alpine.store('app').dismissBackupNudge()">
-        Export a backup
-      </a> from Settings → Data.
+         @click="Alpine.store('app').navigate('settings'); Alpine.store('app').dismissBackupNudge()"
+         x-text="$t('nudge.exportLink')"></a>
+      <span x-text="$t('nudge.fromSettings')"></span>
     </span>
     <button class="btn btn-ghost btn-xs shrink-0"
-            @click="Alpine.store('app').dismissBackupNudge()">Dismiss</button>
+            @click="Alpine.store('app').dismissBackupNudge()"
+            x-text="$t('nudge.dismiss')"></button>
   </div>
 
   <!-- ══ MAIN CONTENT ══════════════════════════════════════════════════ -->
@@ -111,14 +113,14 @@
       <div x-show="!loading && Alpine.store('app').vehicles.length === 0"
            class="empty-state-enhanced">
         <span class="empty-state-icon">🚗</span>
-        <h3>No vehicles yet</h3>
-        <p>Add your first vehicle in Settings to start tracking maintenance intervals and part condition.</p>
+        <h3 x-text="$t('dash.noVehicles.title')"></h3>
+        <p x-text="$t('dash.noVehicles.body')"></p>
         <a href="#settings" class="btn btn-primary gap-2">
           <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none"
                viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
             <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
           </svg>
-          Add a Vehicle
+          <span x-text="$t('dash.noVehicles.addBtn')"></span>
         </a>
       </div>
 
@@ -136,24 +138,23 @@
               <div class="flex items-center justify-between mb-3">
                 <h2 class="font-bold text-base flex items-center gap-2">
                   <span class="text-warning" x-html="Strings.icon('bell', 'w-4 h-4')"></span>
-                  Upcoming Maintenance
+                  <span x-text="$t('dash.upcomingMaintenance')"></span>
                 </h2>
                 <span class="badge badge-neutral badge-sm"
-                      x-text="urgentItems.length + (urgentItems.length === 1 ? ' item' : ' items')"></span>
+                      x-text="$tn('dash.items', urgentItems.length)"></span>
               </div>
 
-              <div x-show="urgentItems.length === 0" class="text-base-content/50 text-sm py-4 text-center">
-                All parts are in good shape. ✅
-              </div>
+              <div x-show="urgentItems.length === 0" class="text-base-content/50 text-sm py-4 text-center"
+                   x-text="$t('dash.allGood')"></div>
 
               <div class="overflow-x-auto">
                 <table class="table table-sm urgency-table" x-show="urgentItems.length > 0">
                   <thead>
                     <tr>
-                      <th>Condition</th>
-                      <th>Part</th>
-                      <th>Vehicle</th>
-                      <th>Due</th>
+                      <th x-text="$t('dash.table.condition')"></th>
+                      <th x-text="$t('dash.table.part')"></th>
+                      <th x-text="$t('dash.table.vehicle')"></th>
+                      <th x-text="$t('dash.table.due')"></th>
                       <th></th>
                     </tr>
                   </thead>
@@ -187,7 +188,7 @@
                         <td class="text-base-content/60 text-xs" x-text="item.vehicleName"></td>
                         <td class="text-sm" x-text="fmtDue(item.due)"></td>
                         <td>
-                          <button class="btn btn-xs btn-primary btn-square" @click="fixItem(item)" title="Log service"
+                          <button class="btn btn-xs btn-primary btn-square" @click="fixItem(item)" :title="$t('action.logService')"
                                   x-html="Strings.icon('wrench', 'w-3.5 h-3.5')"></button>
                         </td>
                       </tr>
@@ -199,7 +200,7 @@
           </div>
 
           <!-- Vehicle health cards -->
-          <h2 class="font-semibold text-xs text-base-content/50 uppercase tracking-widest mb-3">Fleet Overview</h2>
+          <h2 class="font-semibold text-xs text-base-content/50 uppercase tracking-widest mb-3" x-text="$t('dash.fleetOverview')"></h2>
           <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             <template x-for="card in healthCards" :key="card.vehicle.id">
               <div class="card bg-base-100 shadow-sm hover:shadow-md transition-all cursor-pointer overflow-hidden group vehicle-health-card"
@@ -227,17 +228,17 @@
                     </template>
                     <template x-if="card.healthScore == null">
                       <div class="flex flex-col items-center justify-center w-14 h-14 rounded-full border-2 border-dashed border-base-300 flex-shrink-0">
-                        <span class="text-base-content/30 text-xs text-center leading-tight">No<br>parts</span>
+                        <span class="text-base-content/30 text-xs text-center leading-tight" x-text="$t('dash.card.noParts')"></span>
                       </div>
                     </template>
                   </div>
                   <div class="flex gap-1.5 mt-3 flex-wrap">
                     <span x-show="card.overdueCount > 0" class="badge badge-error badge-sm"
-                          x-text="card.overdueCount + ' overdue'"></span>
+                          x-text="card.overdueCount + ' ' + $t('dash.card.overdue')"></span>
                     <span x-show="card.dueSoonCount > 0" class="badge badge-warning badge-sm"
-                          x-text="card.dueSoonCount + ' due soon'"></span>
+                          x-text="card.dueSoonCount + ' ' + $t('dash.card.dueSoon')"></span>
                     <span x-show="card.overdueCount === 0 && card.dueSoonCount === 0"
-                          class="badge badge-success badge-sm">All good</span>
+                          class="badge badge-success badge-sm" x-text="$t('dash.card.allGood')"></span>
                   </div>
                 </div>
               </div>
@@ -248,7 +249,7 @@
               <div class="h-1.5 bg-base-300 group-hover:bg-primary transition-colors vehicle-accent"></div>
               <div class="card-body p-4 items-center justify-center text-center">
                 <div class="text-3xl text-base-content/25 group-hover:text-primary transition-colors">＋</div>
-                <div class="text-sm text-base-content/40 group-hover:text-primary transition-colors font-medium">Add Vehicle</div>
+                <div class="text-sm text-base-content/40 group-hover:text-primary transition-colors font-medium" x-text="$t('dash.addVehicle')"></div>
               </div>
             </a>
           </div>
@@ -271,7 +272,7 @@
                :style="'background:' + (vehicle?.color || '#6b7280')"></div>
           <div class="min-w-0">
             <div class="text-xs breadcrumbs p-0 mb-0.5">
-              <ul><li><a href="#dashboard" class="text-base-content/50 hover:text-base-content">Dashboard</a></li></ul>
+              <ul><li><a href="#dashboard" class="text-base-content/50 hover:text-base-content" x-text="$t('vd.breadcrumb')"></a></li></ul>
             </div>
             <h1 class="text-xl font-bold leading-tight truncate" x-text="vehicle?.name || 'Vehicle'"></h1>
             <p class="text-sm text-base-content/50 mt-0.5"
@@ -281,18 +282,18 @@
         <!-- Vehicle-level actions -->
         <div class="flex items-center gap-2 flex-shrink-0" x-show="vehicle">
           <button class="btn btn-sm btn-ghost gap-1.5 items-center"
-                  @click="$dispatch('open-quick-odo')" title="Log odometer reading">
+                  @click="$dispatch('open-quick-odo')" :title="$t('vd.odo.logTitle')">
             <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none"
                  viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
               <path stroke-linecap="round" stroke-linejoin="round"
                     d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
             </svg>
-            <span class="hidden sm:inline text-xs font-medium leading-none">Odometer</span>
+            <span class="hidden sm:inline text-xs font-medium leading-none" x-text="$t('vd.odo.btn')"></span>
           </button>
           <button class="btn btn-sm btn-primary gap-1.5 items-center"
                   @click="openWizardNew()">
             <span x-html="Strings.icon('wrench', 'w-4 h-4')"></span>
-            <span class="hidden sm:inline text-xs font-semibold leading-none">Log Service</span>
+            <span class="hidden sm:inline text-xs font-semibold leading-none" x-text="$t('vd.logService')"></span>
           </button>
         </div>
       </div>
@@ -300,16 +301,16 @@
       <!-- Odometer stats -->
       <div class="stats stats-horizontal shadow bg-base-100 w-full mb-4 overflow-x-auto">
         <div class="stat">
-          <div class="stat-title">Current Odometer</div>
+          <div class="stat-title" x-text="$t('vd.stats.currentOdo')"></div>
           <div class="stat-value text-lg" x-text="fmt(latestOdometer?.odometer)"></div>
           <div class="stat-desc" x-text="fmtDate(latestOdometer?.date)"></div>
         </div>
         <div class="stat">
-          <div class="stat-title">Readings Logged</div>
+          <div class="stat-title" x-text="$t('vd.stats.readingsLogged')"></div>
           <div class="stat-value text-lg" x-text="odometerHistory.length"></div>
         </div>
         <div class="stat">
-          <div class="stat-title">Active Parts</div>
+          <div class="stat-title" x-text="$t('vd.stats.activeParts')"></div>
           <div class="stat-value text-lg" x-text="activeParts.length"></div>
         </div>
       </div>
@@ -318,14 +319,14 @@
       <div class="card bg-base-100 shadow-sm mb-4">
         <div class="card-body p-4">
           <div class="flex items-center justify-between mb-3">
-            <h2 class="font-semibold">Odometer History</h2>
+            <h2 class="font-semibold" x-text="$t('vd.odoSection.title')"></h2>
             <div class="flex gap-2">
               <button class="btn btn-sm btn-ghost gap-1"
                       @click="showOdoList = !showOdoList; if (!showOdoList) $nextTick(() => _renderChart())">
                 <span x-html="Strings.icon('list', 'w-4 h-4')"></span>
                 <span x-text="showOdoList ? Strings.label.hideList : Strings.label.manage"></span>
               </button>
-              <button class="btn btn-sm btn-outline btn-square" @click="$dispatch('open-quick-odo')" title="Add odometer reading"
+              <button class="btn btn-sm btn-outline btn-square" @click="$dispatch('open-quick-odo')" :title="$t('vd.odoSection.addTitle')"
                       x-html="Strings.icon('plus', 'w-4 h-4')">
               </button>
             </div>
@@ -333,9 +334,8 @@
 
           <!-- Chart -->
           <div x-show="!showOdoList">
-            <div x-show="odometerHistory.length < 2" class="text-center text-base-content/50 py-6 text-sm">
-              Add at least 2 odometer readings to see the chart.
-            </div>
+            <div x-show="odometerHistory.length < 2" class="text-center text-base-content/50 py-6 text-sm"
+                 x-text="$t('vd.odoSection.chartMsg')"></div>
             <div class="chart-container" x-show="odometerHistory.length >= 2">
               <canvas id="odomChart"></canvas>
             </div>
@@ -343,17 +343,16 @@
 
           <!-- Readings list / inline edit -->
           <div x-show="showOdoList">
-            <div x-show="odometerHistory.length === 0" class="text-center text-base-content/50 py-6 text-sm">
-              No odometer readings yet.
-            </div>
+            <div x-show="odometerHistory.length === 0" class="text-center text-base-content/50 py-6 text-sm"
+                 x-text="$t('vd.odoSection.noReadings')"></div>
             <div x-show="odometerHistory.length > 0" class="overflow-x-auto">
               <table class="table table-sm w-full">
                 <thead class="text-xs bg-base-200/60">
                   <tr>
-                    <th>Date</th>
-                    <th>Odometer</th>
-                    <th>Source</th>
-                    <th>Notes</th>
+                    <th x-text="$t('vd.odoTable.date')"></th>
+                    <th x-text="$t('vd.odoTable.odometer')"></th>
+                    <th x-text="$t('vd.odoTable.source')"></th>
+                    <th x-text="$t('vd.odoTable.notes')"></th>
                     <th></th>
                   </tr>
                 </thead>
@@ -391,7 +390,7 @@
                         <td colspan="2">
                           <div class="flex flex-col gap-1 w-full">
                             <input type="text" class="input input-bordered input-xs w-full"
-                                   placeholder="Notes (optional)"
+                                   :placeholder="$t('vd.odoTable.notesPlaceholder')"
                                    x-model="editOdoForm.notes">
                             <p x-show="editOdoError" class="text-error text-xs" x-text="editOdoError"></p>
                           </div>
@@ -406,17 +405,17 @@
                       <!-- Actions -->
                       <template x-if="editingOdoId !== r.id">
                         <td class="text-right whitespace-nowrap">
-                          <button class="btn btn-xs btn-ghost" @click="startEditOdo(r)" title="Edit"
+                          <button class="btn btn-xs btn-ghost" @click="startEditOdo(r)" :title="$t('action.edit')"
                                   x-html="Strings.icon('pencil', 'w-3.5 h-3.5')"></button>
                           <button class="btn btn-xs btn-ghost text-error opacity-40 hover:opacity-100 transition-opacity"
-                                  @click="deleteOdo(r)" title="Delete"
+                                  @click="deleteOdo(r)" :title="$t('action.delete')"
                                   x-html="Strings.icon('trash', 'w-3.5 h-3.5')"></button>
                         </td>
                       </template>
                       <template x-if="editingOdoId === r.id">
                         <td class="text-right whitespace-nowrap">
-                          <button class="btn btn-xs btn-primary" @click="saveEditOdo()">Save</button>
-                          <button class="btn btn-xs btn-ghost" @click="cancelEditOdo()">Cancel</button>
+                          <button class="btn btn-xs btn-primary" @click="saveEditOdo()" x-text="$t('action.save')"></button>
+                          <button class="btn btn-xs btn-ghost" @click="cancelEditOdo()" x-text="$t('action.cancel')"></button>
                         </td>
                       </template>
                     </tr>
@@ -431,9 +430,9 @@
 
       <!-- Parts table -->
       <div class="flex items-center justify-between mb-3">
-        <h2 class="font-bold text-base">Installed Parts</h2>
+        <h2 class="font-bold text-base" x-text="$t('vd.installedParts')"></h2>
         <div class="flex items-center gap-2">
-          <button class="btn btn-sm btn-primary btn-square" @click="openWizardNew()" title="Log service"
+          <button class="btn btn-sm btn-primary btn-square" @click="openWizardNew()" :title="$t('action.logService')"
                   x-html="Strings.icon('wrench', 'w-4 h-4')">
           </button>
         </div>
@@ -441,11 +440,11 @@
 
       <div x-show="activeParts.length === 0" class="empty-state-enhanced">
         <span class="empty-state-icon">🔧</span>
-        <h3>No parts recorded yet</h3>
-        <p>Log your first service to start tracking part health and maintenance intervals.</p>
+        <h3 x-text="$t('vd.noParts.title')"></h3>
+        <p x-text="$t('vd.noParts.body')"></p>
         <button class="btn btn-primary gap-2" @click="openWizardNew()">
           <span x-html="Strings.icon('wrench', 'w-4 h-4')"></span>
-          Log First Service
+          <span x-text="$t('vd.noParts.btn')"></span>
         </button>
       </div>
 
@@ -456,7 +455,7 @@
               <th class="w-0 p-1"></th>
               <th class="font-semibold">Part</th>
               <template x-for="col in visibleColumns" :key="col.key">
-                <th class="font-semibold" x-text="col.label"></th>
+                <th class="font-semibold" x-text="$t(col.labelKey)"></th>
               </template>
               <th></th>
             </tr>
@@ -482,12 +481,12 @@
                   </template>
                   <td class="text-right">
                     <div class="flex items-center justify-end gap-1">
-                      <button class="btn btn-xs btn-ghost" @click="openWizardForPart(part)" title="Log service"
+                      <button class="btn btn-xs btn-ghost" @click="openWizardForPart(part)" :title="$t('action.logService')"
                               x-html="Strings.icon('wrench', 'w-3.5 h-3.5')"></button>
-                      <button class="btn btn-xs btn-ghost" @click="openWizardForEdit(part)" title="Edit record"
+                      <button class="btn btn-xs btn-ghost" @click="openWizardForEdit(part)" :title="$t('vd.editRecordTitle')"
                               x-html="Strings.icon('pencil', 'w-3.5 h-3.5')"></button>
                       <button class="btn btn-xs btn-ghost text-error opacity-40 hover:opacity-100 transition-opacity"
-                              @click="deletePartRecord(part)" title="Delete record"
+                              @click="deletePartRecord(part)" :title="$t('vd.deleteRecordTitle')"
                               x-html="Strings.icon('trash', 'w-3.5 h-3.5')"></button>
                     </div>
                   </td>
@@ -509,30 +508,30 @@
       <!-- Breadcrumb -->
       <div class="text-sm breadcrumbs mb-4">
         <ul>
-          <li><a href="#dashboard">Dashboard</a></li>
+          <li><a href="#dashboard" x-text="$t('vd.breadcrumb')"></a></li>
           <li><a href="#vehicle-detail" x-text="$store.app.currentVehicle?.name || 'Vehicle'"></a></li>
-          <li x-text="editMode ? 'Edit Service Record' : 'New Service Record'"></li>
+          <li x-text="editMode ? $t('wiz.breadcrumb.edit') : $t('wiz.breadcrumb.new')"></li>
         </ul>
       </div>
 
       <!-- Step indicator -->
       <ul class="steps w-full mb-6 text-xs">
-        <li class="step" :class="step >= 1 ? 'step-primary' : ''">Part</li>
-        <li class="step" :class="step >= 2 ? 'step-primary' : ''">Details</li>
-        <li class="step" :class="step >= 3 ? 'step-primary' : ''">Review</li>
+        <li class="step" :class="step >= 1 ? 'step-primary' : ''" x-text="$t('wiz.step.part')"></li>
+        <li class="step" :class="step >= 2 ? 'step-primary' : ''" x-text="$t('wiz.step.details')"></li>
+        <li class="step" :class="step >= 3 ? 'step-primary' : ''" x-text="$t('wiz.step.review')"></li>
       </ul>
 
       <!-- ── STEP 1: Part type + date ── -->
       <div x-show="step === 1 && !editMode" class="wizard-step-enter">
         <div class="card bg-base-100 shadow-sm">
           <div class="card-body">
-            <h2 class="card-title">What are you servicing?</h2>
+            <h2 class="card-title" x-text="$t('wiz.s1.title')"></h2>
 
             <!-- Part type search -->
             <div class="form-control">
-              <label class="label"><span class="label-text">Part / Service Type</span></label>
+              <label class="label"><span class="label-text" x-text="$t('wiz.s1.partTypeLabel')"></span></label>
               <input type="text" class="input input-bordered w-full"
-                     placeholder="Search parts… (e.g. Engine Oil, Spark Plugs)"
+                     :placeholder="$t('wiz.s1.partTypePlaceholder')"
                      x-model="partTypeSearch"
                      @input="_filterPartTypes()"
                      @focus="_filterPartTypes()">
@@ -546,10 +545,10 @@
                     </li>
                   </template>
                   <li x-show="filteredPartTypes.length === 0"
-                      class="px-4 py-2 text-sm text-base-content/50 pointer-events-none">No matches found.</li>
+                      class="px-4 py-2 text-sm text-base-content/50 pointer-events-none" x-text="$t('wiz.s1.noMatches')"></li>
                   <li class="border-t border-base-200 mt-1">
                     <a @click="showNewPartTypeForm = true; newPartTypeForm.name = partTypeSearch; filteredPartTypes = []; partTypeSearch = ''"
-                       class="text-primary text-sm">+ Add as new part type</a>
+                       class="text-primary text-sm" x-text="$t('wiz.s1.addNewType')"></a>
                   </li>
                 </ul>
               </div>
@@ -560,15 +559,15 @@
                   <button @click="selectedPartType = null; partTypeSearch = ''" class="hover:opacity-70">✕</button>
                 </span>
                 <span x-show="epcLoading" class="loading loading-dots loading-xs text-primary"></span>
-                <span x-show="epcData && !epcLoading" class="epc-label">EPC data found</span>
+                <span x-show="epcData && !epcLoading" class="epc-label" x-text="$t('wiz.s1.epcFound')"></span>
               </div>
             </div>
 
             <!-- New part type inline form -->
             <div x-show="showNewPartTypeForm" class="border border-base-300 rounded-box p-3 mt-2 space-y-2">
-              <p class="font-medium text-sm">New Part Type</p>
+              <p class="font-medium text-sm" x-text="$t('wiz.s1.newPartTypeTitle')"></p>
               <input type="text" class="input input-bordered input-sm w-full"
-                     placeholder="Name (e.g. Seat Cushion, Lamp Lens)"
+                     :placeholder="$t('wiz.s1.namePlaceholder')"
                      x-model="newPartTypeForm.name">
               <div class="flex gap-2">
                 <select class="select select-bordered select-sm flex-1" x-model="newPartTypeForm.category">
@@ -579,22 +578,22 @@
                 </select>
                 <input x-show="newPartTypeForm.category === 'custom'"
                        type="text" class="input input-bordered input-sm flex-1"
-                       placeholder="Category name" x-model="newPartTypeForm.customCategory">
+                       :placeholder="$t('wiz.s1.categoryCustomPlaceholder')" x-model="newPartTypeForm.customCategory">
               </div>
               <div class="flex gap-4 items-center text-sm">
                 <label class="flex items-center gap-1 cursor-pointer">
                   <input type="checkbox" class="checkbox checkbox-sm" x-model="newPartTypeForm.isFluid">
-                  <span>Is a fluid</span>
+                  <span x-text="$t('wiz.s1.isFluid')"></span>
                 </label>
                 <input type="number" class="input input-bordered input-sm w-28"
-                       placeholder="Default km" x-model="newPartTypeForm.defaultKmInterval" min="0">
+                       :placeholder="$t('wiz.s1.defaultKm')" x-model="newPartTypeForm.defaultKmInterval" min="0">
                 <input type="number" class="input input-bordered input-sm w-28"
-                       placeholder="Default days" x-model="newPartTypeForm.defaultDaysInterval" min="0">
+                       :placeholder="$t('wiz.s1.defaultDays')" x-model="newPartTypeForm.defaultDaysInterval" min="0">
               </div>
               <div class="flex gap-2">
                 <button class="btn btn-sm btn-primary" @click="saveNewPartType()"
-                        :disabled="!newPartTypeForm.name.trim()">Add</button>
-                <button class="btn btn-sm btn-ghost" @click="showNewPartTypeForm = false">Cancel</button>
+                        :disabled="!newPartTypeForm.name.trim()" x-text="$t('action.add')"></button>
+                <button class="btn btn-sm btn-ghost" @click="showNewPartTypeForm = false" x-text="$t('action.cancel')"></button>
               </div>
             </div>
 
@@ -603,10 +602,10 @@
               <!-- Heading changes tone based on whether exact matches exist -->
               <p class="text-sm font-medium mb-1">
                 <template x-if="exactMatchCandidates.length > 0">
-                  <span>Replacing an existing part — select which one:</span>
+                  <span x-text="$t('wiz.s1.replacingExact')"></span>
                 </template>
                 <template x-if="exactMatchCandidates.length === 0">
-                  <span>Are you replacing an existing part?</span>
+                  <span x-text="$t('wiz.s1.replacingMaybe')"></span>
                 </template>
               </p>
               <div class="space-y-1">
@@ -619,12 +618,12 @@
                       <div class="flex items-center gap-1.5 flex-wrap">
                         <span class="font-medium" x-text="c.partName"></span>
                         <span x-show="c._matchScore >= 3"
-                              class="badge badge-xs badge-primary">exact match</span>
+                              class="badge badge-xs badge-primary" x-text="$t('wiz.s1.exactMatch')"></span>
                         <span class="text-base-content/50 capitalize text-xs"
                               x-text="(c.partSource || '').replace(/-/g,' ') + (c.brand ? ' · ' + c.brand : '')"></span>
                       </div>
                       <div class="text-xs text-base-content/40 mt-0.5"
-                           x-text="'Installed: ' + (c.installDate ? new Date(c.installDate).toLocaleDateString() : '—')"></div>
+                           x-text="$t('wiz.s1.installed') + ' ' + (c.installDate ? new Date(c.installDate).toLocaleDateString(I18n.locale) : '—')"></div>
                     </div>
                   </label>
                 </template>
@@ -638,10 +637,10 @@
                          :value="null" x-model="selectedOutgoingId">
                   <span class="text-sm flex items-center gap-1">
                     <template x-if="exactMatchCandidates.length > 0">
-                      <span>⚠️ No — add as a new separate record (creates duplicate)</span>
+                      <span x-text="$t('wiz.s1.noReplDup')"></span>
                     </template>
                     <template x-if="exactMatchCandidates.length === 0">
-                      <span>No — this is a new addition</span>
+                      <span x-text="$t('wiz.s1.noReplNew')"></span>
                     </template>
                   </span>
                 </label>
@@ -650,13 +649,13 @@
 
             <!-- Date -->
             <div class="form-control mt-2">
-              <label class="label"><span class="label-text">Date</span></label>
+              <label class="label"><span class="label-text" x-text="$t('wiz.s1.dateLabel')"></span></label>
               <input type="date" class="input input-bordered w-full" x-model="installDate">
             </div>
 
             <!-- Nudge chips -->
             <div x-show="nudgeItems.length > 0" class="mt-3">
-              <p class="text-xs text-base-content/50 mb-1">Also due on this vehicle:</p>
+              <p class="text-xs text-base-content/50 mb-1" x-text="$t('wiz.s1.nudgeDue')"></p>
               <div class="flex flex-wrap gap-1.5">
                 <template x-for="n in nudgeItems" :key="n.id">
                   <button class="nudge-chip text-xs"
@@ -677,24 +676,24 @@
         <!-- Odometer -->
         <div class="card bg-base-100 shadow-sm">
           <div class="card-body">
-            <h2 class="card-title text-base">Odometer Reading</h2>
-            <p class="text-sm text-base-content/60">Optional — improves predictions.</p>
+            <h2 class="card-title text-base" x-text="$t('wiz.s2.odoTitle')"></h2>
+            <p class="text-sm text-base-content/60" x-text="$t('wiz.s2.odoSubtitle')"></p>
 
             <div x-show="odometerSuggested" class="alert alert-info py-2 text-sm flex items-center justify-between gap-2">
               <span>
                 <template x-if="odometerSuggested?.isInterpolated">
-                  <span>Estimated at service date: <strong x-text="fmt(odometerSuggested?.odometer)"></strong> <span class="opacity-60 text-xs">(interpolated)</span></span>
+                  <span><span x-text="$t('wiz.s2.estimatedAt')"></span> <strong x-text="fmt(odometerSuggested?.odometer)"></strong> <span class="opacity-60 text-xs" x-text="$t('wiz.s2.interpolated')"></span></span>
                 </template>
                 <template x-if="!odometerSuggested?.isInterpolated">
-                  <span>Last recorded: <strong x-text="fmt(odometerSuggested?.odometer)"></strong></span>
+                  <span><span x-text="$t('wiz.s2.lastRecorded')"></span> <strong x-text="fmt(odometerSuggested?.odometer)"></strong></span>
                 </template>
               </span>
-              <button class="btn btn-xs flex-shrink-0" @click="useLatestOdometer()">Use this</button>
+              <button class="btn btn-xs flex-shrink-0" @click="useLatestOdometer()" x-text="$t('wiz.s2.useThis')"></button>
             </div>
 
             <div class="form-control">
               <input type="number" class="input input-bordered w-full"
-                     :placeholder="odometerSuggested ? String(odometerSuggested.odometer) : 'e.g. 82450'"
+                     :placeholder="odometerSuggested ? String(odometerSuggested.odometer) : $t('wiz.s2.odoPlaceholder')"
                      x-model="odometerInput" min="0">
             </div>
           </div>
@@ -703,10 +702,9 @@
         <!-- Outgoing part condition (only when replacing) -->
         <div class="card bg-base-100 shadow-sm" x-show="outgoingPart">
           <div class="card-body">
-            <h2 class="card-title text-base">Condition of Removed Part</h2>
-            <p class="text-sm text-base-content/60 mb-3">
-              How was the <strong x-text="outgoingPart?.partName"></strong> you're removing?
-            </p>
+            <h2 class="card-title text-base" x-text="$t('wiz.s2.outgoingTitle')"></h2>
+            <p class="text-sm text-base-content/60 mb-3"
+               x-text="$t('wiz.s2.outgoingSubtitle', { part: outgoingPart?.partName || '' })"></p>
 
             <!-- Quick-select buttons -->
             <div class="condition-btn-row mb-3">
@@ -727,12 +725,12 @@
             <input type="range" class="range range-sm w-full" min="0" max="100" step="1"
                    x-model="outgoingCondition">
             <div class="flex justify-between text-xs text-base-content/40 mt-0.5">
-              <span>Failed</span><span>Poor</span><span>Fair</span><span>Good</span><span>New</span>
+              <span x-text="$t('cond.failed')"></span><span x-text="$t('cond.poor')"></span><span x-text="$t('cond.fair')"></span><span x-text="$t('cond.good')"></span><span x-text="$t('cond.new')"></span>
             </div>
 
             <div class="form-control mt-3">
               <textarea class="textarea textarea-bordered w-full text-sm"
-                        placeholder="Notes on condition (optional)"
+                        :placeholder="$t('wiz.s2.condNotesPlaceholder')"
                         x-model="outgoingConditionNotes" rows="2"></textarea>
             </div>
           </div>
@@ -741,11 +739,11 @@
         <!-- New part details -->
         <div class="card bg-base-100 shadow-sm">
           <div class="card-body">
-            <h2 class="card-title text-base">New Part Details</h2>
+            <h2 class="card-title text-base" x-text="$t('wiz.s2.newPartTitle')"></h2>
 
             <!-- Source -->
             <div class="form-control">
-              <label class="label"><span class="label-text">Part Source</span></label>
+              <label class="label"><span class="label-text" x-text="$t('wiz.s2.sourceLabel')"></span></label>
               <div class="flex flex-wrap gap-2">
                 <template x-for="src in ['oem-genuine','aftermarket','generic']" :key="src">
                   <label class="flex items-center gap-1.5 cursor-pointer p-2 rounded-lg border"
@@ -761,25 +759,25 @@
             <!-- Brand -->
             <div class="form-control" x-show="partSource === 'aftermarket' || partSource === 'oem-genuine'">
               <label class="label">
-                <span class="label-text">Brand</span>
-                <span class="label-text-alt text-error" x-show="partSource === 'aftermarket'">Required</span>
-                <span class="label-text-alt text-base-content/50" x-show="partSource === 'oem-genuine'">Optional</span>
+                <span class="label-text" x-text="$t('wiz.s2.brandLabel')"></span>
+                <span class="label-text-alt text-error" x-show="partSource === 'aftermarket'" x-text="$t('wiz.s2.brandRequired')"></span>
+                <span class="label-text-alt text-base-content/50" x-show="partSource === 'oem-genuine'" x-text="$t('wiz.s2.brandOptional')"></span>
               </label>
               <input type="text" class="input input-bordered w-full"
-                     placeholder="e.g. Toyota, NGK, Denso"
+                     :placeholder="$t('wiz.s2.brandPlaceholder')"
                      x-model="brand">
             </div>
 
             <!-- Part number -->
             <div class="form-control">
               <label class="label">
-                <span class="label-text">Part Number</span>
-                <span x-show="epcData?.partNumbers?.length" class="epc-label">EPC suggestion</span>
+                <span class="label-text" x-text="$t('wiz.s2.partNumLabel')"></span>
+                <span x-show="epcData?.partNumbers?.length" class="epc-label" x-text="$t('wiz.s2.epcSuggestion')"></span>
               </label>
               <div x-show="epcData?.partNumbers?.length > 1" class="mb-1">
                 <select class="select select-bordered select-sm w-full"
                         @change="partNumber = $event.target.value">
-                  <option value="">— Select from EPC —</option>
+                  <option value="" x-text="$t('wiz.s2.selectFromEPC')"></option>
                   <template x-for="p in (epcData?.partNumbers || [])" :key="p.partNumber">
                     <option :value="p.partNumber"
                             x-text="p.partNumber + ' (' + (p.years || '') + ') ' + (p.description || '')"></option>
@@ -787,15 +785,15 @@
                 </select>
               </div>
               <input type="text" class="input input-bordered w-full"
-                     placeholder="e.g. 90915-YZZD3"
+                     :placeholder="$t('wiz.s2.partNumPlaceholder')"
                      x-model="partNumber">
             </div>
 
             <!-- Variant picker -->
             <div class="form-control" x-show="hasVariants">
               <label class="label">
-                <span class="label-text">Grade / Type</span>
-                <span class="label-text-alt text-base-content/50 text-xs">Interval updates automatically</span>
+                <span class="label-text" x-text="$t('wiz.s2.gradeLabel')"></span>
+                <span class="label-text-alt text-base-content/50 text-xs" x-text="$t('wiz.s2.gradeIntervalNote')"></span>
               </label>
               <div class="flex flex-wrap gap-2">
                 <template x-for="v in partVariants" :key="v.label">
@@ -818,20 +816,20 @@
             <template x-if="hasFluidOptions">
               <div class="space-y-3">
                 <div class="form-control">
-                  <label class="label"><span class="label-text">Fluid Type</span></label>
+                  <label class="label"><span class="label-text" x-text="$t('wiz.s2.fluidTypeLabel')"></span></label>
                   <select class="select select-bordered w-full" x-model="_fluidSubtype"
                           @change="_syncFluidGrade()">
-                    <option value="">— Select type —</option>
+                    <option value="" x-text="$t('wiz.s2.selectType')"></option>
                     <template x-for="s in fluidSubtypes" :key="s">
                       <option :value="s" x-text="s"></option>
                     </template>
                   </select>
                 </div>
                 <div class="form-control" x-show="fluidGrades.length > 0">
-                  <label class="label"><span class="label-text">Grade / Specification</span></label>
+                  <label class="label"><span class="label-text" x-text="$t('wiz.s2.gradeSpecLabel')"></span></label>
                   <select class="select select-bordered w-full" x-model="_fluidGrade"
                           @change="_syncFluidGrade()">
-                    <option value="">— Select grade —</option>
+                    <option value="" x-text="$t('wiz.s2.selectGrade')"></option>
                     <template x-for="g in fluidGrades" :key="g">
                       <option :value="g" x-text="g"></option>
                     </template>
@@ -843,7 +841,7 @@
             <!-- Costs -->
             <div class="grid grid-cols-2 gap-3">
               <div class="form-control">
-                <label class="label"><span class="label-text">Part Cost</span></label>
+                <label class="label"><span class="label-text" x-text="$t('wiz.s2.partCostLabel')"></span></label>
                 <label class="input input-bordered flex items-center gap-1">
                   <span class="text-base-content/50 text-sm" x-text="Alpine.store('app').currency"></span>
                   <input type="number" class="grow" placeholder="0.00" min="0" step="0.01"
@@ -851,7 +849,7 @@
                 </label>
               </div>
               <div class="form-control">
-                <label class="label"><span class="label-text">Labour Cost</span></label>
+                <label class="label"><span class="label-text" x-text="$t('wiz.s2.labourCostLabel')"></span></label>
                 <label class="input input-bordered flex items-center gap-1">
                   <span class="text-base-content/50 text-sm" x-text="Alpine.store('app').currency"></span>
                   <input type="number" class="grow" placeholder="0.00" min="0" step="0.01"
@@ -865,10 +863,10 @@
         <!-- Notes -->
         <div class="card bg-base-100 shadow-sm">
           <div class="card-body">
-            <h2 class="card-title text-base">Notes <span class="text-sm font-normal text-base-content/50">(optional)</span></h2>
+            <h2 class="card-title text-base"><span x-text="$t('wiz.s2.notesTitle')"></span> <span class="text-sm font-normal text-base-content/50" x-text="$t('wiz.s2.notesOptional')"></span></h2>
             <div class="form-control">
               <textarea class="textarea textarea-bordered w-full" rows="2"
-                        placeholder="e.g. used synthetic blend, noticed slight leak…"
+                        :placeholder="$t('wiz.s2.notesPlaceholder')"
                         x-model="notes"></textarea>
             </div>
           </div>
@@ -877,46 +875,46 @@
         <!-- Interval -->
         <div class="card bg-base-100 shadow-sm">
           <div class="card-body">
-            <h2 class="card-title text-base">Replacement Interval</h2>
+            <h2 class="card-title text-base" x-text="$t('wiz.s2.intervalTitle')"></h2>
 
             <div x-show="intervalSource" class="alert alert-info py-2 text-xs">
-              Pre-filled from: <strong x-text="intervalSource"></strong>
+              <span x-text="$t('wiz.s2.preFilledFrom')"></span> <strong x-text="$t(intervalSource)"></strong>
             </div>
             <div x-show="epcData?.maintenance?.notes" class="alert alert-warning py-2 text-xs"
                  x-text="epcData?.maintenance?.notes"></div>
 
             <div class="grid grid-cols-2 gap-3">
               <div class="form-control">
-                <label class="label"><span class="label-text">Every (km)</span></label>
+                <label class="label"><span class="label-text" x-text="$t('wiz.s2.kmLabel')"></span></label>
                 <input type="number" class="input input-bordered w-full"
-                       placeholder="e.g. 10000"
+                       :placeholder="$t('wiz.s2.kmPlaceholder')"
                        x-model="kmInterval" min="0" step="500">
               </div>
               <div class="form-control">
-                <label class="label"><span class="label-text">Or every (time)</span></label>
+                <label class="label"><span class="label-text" x-text="$t('wiz.s2.timeLabel')"></span></label>
                 <div class="flex gap-2 items-center">
                   <input type="number" class="input input-bordered w-20 text-center"
                          placeholder="0" x-model="daysIntervalYears" min="0" step="1">
-                  <span class="text-sm text-base-content/60">yr</span>
+                  <span class="text-sm text-base-content/60" x-text="$t('wiz.s2.yr')"></span>
                   <input type="number" class="input input-bordered w-20 text-center"
                          placeholder="0" x-model="daysIntervalMonths" min="0" step="1">
-                  <span class="text-sm text-base-content/60">mo</span>
+                  <span class="text-sm text-base-content/60" x-text="$t('wiz.s2.mo')"></span>
                 </div>
               </div>
             </div>
-            <p class="text-xs text-base-content/40 mt-1">Whichever threshold comes first triggers a service alert.</p>
+            <p class="text-xs text-base-content/40 mt-1" x-text="$t('wiz.s2.intervalNote')"></p>
 
             <!-- Scope toggle -->
             <div class="mt-3">
-              <label class="label"><span class="label-text font-medium">Apply interval to:</span></label>
+              <label class="label"><span class="label-text font-medium" x-text="$t('wiz.s2.applyTo')"></span></label>
               <div class="flex flex-col gap-1.5">
                 <label class="flex items-start gap-2 p-2.5 rounded-lg border cursor-pointer"
                        :class="intervalScope === 'install-only' ? 'border-primary bg-primary/5' : 'border-base-300 hover:bg-base-200'">
                   <input type="radio" class="radio radio-sm radio-primary mt-0.5"
                          value="install-only" x-model="intervalScope">
                   <div>
-                    <div class="text-sm font-medium">This installation only</div>
-                    <div class="text-xs text-base-content/50">Future replacements use the original default.</div>
+                    <div class="text-sm font-medium" x-text="$t('wiz.s2.installOnly.title')"></div>
+                    <div class="text-xs text-base-content/50" x-text="$t('wiz.s2.installOnly.desc')"></div>
                   </div>
                 </label>
                 <label class="flex items-start gap-2 p-2.5 rounded-lg border cursor-pointer"
@@ -924,8 +922,8 @@
                   <input type="radio" class="radio radio-sm radio-primary mt-0.5"
                          value="update-default" x-model="intervalScope">
                   <div>
-                    <div class="text-sm font-medium">Update default for <span x-text="selectedPartType?.name"></span></div>
-                    <div class="text-xs text-base-content/50">This becomes the new default going forward.</div>
+                    <div class="text-sm font-medium" x-text="$t('wiz.s2.updateDefault.title', { name: selectedPartType?.name || '' })"></div>
+                    <div class="text-xs text-base-content/50" x-text="$t('wiz.s2.updateDefault.desc')"></div>
                   </div>
                 </label>
               </div>
@@ -939,33 +937,33 @@
       <div x-show="step === 3" class="wizard-step-enter">
         <div class="card bg-base-100 shadow-sm">
           <div class="card-body">
-            <h2 class="card-title">Review &amp; Save</h2>
+            <h2 class="card-title" x-text="$t('wiz.s3.title')"></h2>
 
             <div class="overflow-x-auto">
               <table class="table table-sm">
                 <tbody>
-                  <tr><td class="font-medium text-base-content/60 w-40">Vehicle</td><td x-text="Alpine.store('app').currentVehicle?.name"></td></tr>
-                  <tr><td class="font-medium text-base-content/60">Part</td><td x-text="selectedPartType?.name"></td></tr>
-                  <tr><td class="font-medium text-base-content/60">Date</td><td x-text="fmtDate(installDate)"></td></tr>
-                  <tr x-show="odometerInput"><td class="font-medium text-base-content/60">Odometer</td><td x-text="fmt(Number(odometerInput))"></td></tr>
-                  <tr x-show="outgoingPart"><td class="font-medium text-base-content/60">Removed Part</td><td x-text="(outgoingPart?.partName || '') + ' (' + outgoingCondition + '% condition)'"></td></tr>
-                  <tr><td class="font-medium text-base-content/60">Source</td><td x-text="sourceLabel(partSource)"></td></tr>
-                  <tr x-show="brand"><td class="font-medium text-base-content/60">Brand</td><td x-text="brand"></td></tr>
-                  <tr x-show="partNumber"><td class="font-medium text-base-content/60">Part #</td><td x-text="partNumber"></td></tr>
-                  <tr x-show="grade"><td class="font-medium text-base-content/60">Grade / Type</td><td x-text="grade"></td></tr>
-                  <tr x-show="partCost"><td class="font-medium text-base-content/60">Part Cost</td><td x-text="fmtCur(Number(partCost))"></td></tr>
-                  <tr x-show="labourCost"><td class="font-medium text-base-content/60">Labour</td><td x-text="fmtCur(Number(labourCost))"></td></tr>
-                  <tr><td class="font-medium text-base-content/60">Interval</td>
+                  <tr><td class="font-medium text-base-content/60 w-40" x-text="$t('wiz.s3.vehicle')"></td><td x-text="Alpine.store('app').currentVehicle?.name"></td></tr>
+                  <tr><td class="font-medium text-base-content/60" x-text="$t('wiz.s3.part')"></td><td x-text="selectedPartType?.name"></td></tr>
+                  <tr><td class="font-medium text-base-content/60" x-text="$t('wiz.s3.date')"></td><td x-text="fmtDate(installDate)"></td></tr>
+                  <tr x-show="odometerInput"><td class="font-medium text-base-content/60" x-text="$t('wiz.s3.odometer')"></td><td x-text="fmt(Number(odometerInput))"></td></tr>
+                  <tr x-show="outgoingPart"><td class="font-medium text-base-content/60" x-text="$t('wiz.s3.removedPart')"></td><td x-text="(outgoingPart?.partName || '') + ' (' + outgoingCondition + '% condition)'"></td></tr>
+                  <tr><td class="font-medium text-base-content/60" x-text="$t('wiz.s3.source')"></td><td x-text="sourceLabel(partSource)"></td></tr>
+                  <tr x-show="brand"><td class="font-medium text-base-content/60" x-text="$t('wiz.s3.brand')"></td><td x-text="brand"></td></tr>
+                  <tr x-show="partNumber"><td class="font-medium text-base-content/60" x-text="$t('wiz.s3.partNum')"></td><td x-text="partNumber"></td></tr>
+                  <tr x-show="grade"><td class="font-medium text-base-content/60" x-text="$t('wiz.s3.grade')"></td><td x-text="grade"></td></tr>
+                  <tr x-show="partCost"><td class="font-medium text-base-content/60" x-text="$t('wiz.s3.partCost')"></td><td x-text="fmtCur(Number(partCost))"></td></tr>
+                  <tr x-show="labourCost"><td class="font-medium text-base-content/60" x-text="$t('wiz.s3.labour')"></td><td x-text="fmtCur(Number(labourCost))"></td></tr>
+                  <tr><td class="font-medium text-base-content/60" x-text="$t('wiz.s3.interval')"></td>
                       <td>
                         <span x-show="kmInterval" x-text="fmt(Number(kmInterval))"></span>
                         <span x-show="kmInterval && daysInterval"> / </span>
                         <span x-show="daysInterval" x-text="Utils.formatDuration(Number(daysInterval))"></span>
                         <span class="badge badge-xs badge-ghost ml-1"
-                              x-text="intervalScope === 'install-only' ? 'this install only' : 'updating default'"></span>
+                              x-text="intervalScope === 'install-only' ? $t('wiz.s3.thisInstallOnly') : $t('wiz.s3.updatingDefault')"></span>
                       </td>
                   </tr>
-                  <tr><td class="font-medium text-base-content/60">Next Due</td><td x-text="reviewNextDue"></td></tr>
-                  <tr x-show="notes"><td class="font-medium text-base-content/60">Notes</td><td x-text="notes"></td></tr>
+                  <tr><td class="font-medium text-base-content/60" x-text="$t('wiz.s3.nextDue')"></td><td x-text="reviewNextDue"></td></tr>
+                  <tr x-show="notes"><td class="font-medium text-base-content/60" x-text="$t('wiz.s3.notes')"></td><td x-text="notes"></td></tr>
                 </tbody>
               </table>
             </div>
@@ -978,18 +976,17 @@
       <!-- Navigation buttons -->
       <div class="flex items-center justify-between mt-4">
         <button class="btn btn-ghost" @click="step > 1 ? goPrev() : Alpine.store('app').navigate('vehicle-detail')">
-          ← <span x-text="step > 1 ? 'Back' : 'Cancel'"></span>
+          ← <span x-text="step > 1 ? $t('wiz.nav.back') : $t('wiz.nav.cancel')"></span>
         </button>
-        <div class="text-xs text-base-content/40">Step <span x-text="step"></span> of 3</div>
+        <div class="text-xs text-base-content/40" x-text="$t('wiz.nav.stepOf', { n: step })"></div>
         <template x-if="step < 3">
-          <button class="btn btn-primary" @click="goNext()" :disabled="!canProceed">
-            Next →
+          <button class="btn btn-primary" @click="goNext()" :disabled="!canProceed" x-text="$t('wiz.nav.next')">
           </button>
         </template>
         <template x-if="step === 3">
           <button class="btn btn-success" @click="save()" :disabled="saving">
             <span x-show="saving" class="loading loading-spinner loading-sm"></span>
-            <span x-text="saving ? 'Saving…' : 'Save Record'"></span>
+            <span x-text="saving ? $t('wiz.nav.saving') : $t('wiz.nav.saveRecord')"></span>
           </button>
         </template>
       </div>
@@ -1003,8 +1000,8 @@
 
       <div class="text-sm breadcrumbs mb-4">
         <ul>
-          <li><a href="#dashboard">Dashboard</a></li>
-          <li>Settings</li>
+          <li><a href="#dashboard" x-text="$t('vd.breadcrumb')"></a></li>
+          <li x-text="$t('nav.settings')"></li>
         </ul>
       </div>
 
@@ -1013,34 +1010,38 @@
                 :class="activeTab === 'vehicles'
                   ? 'bg-base-100 shadow-sm text-base-content'
                   : 'text-base-content/50 hover:text-base-content'"
-                @click="activeTab = 'vehicles'">Vehicles</button>
+                @click="activeTab = 'vehicles'" x-text="$t('settings.tab.vehicles')"></button>
         <button class="px-4 py-1.5 rounded-lg text-sm font-medium transition-all"
                 :class="activeTab === 'preferences'
                   ? 'bg-base-100 shadow-sm text-base-content'
                   : 'text-base-content/50 hover:text-base-content'"
-                @click="activeTab = 'preferences'">Preferences</button>
+                @click="activeTab = 'preferences'" x-text="$t('settings.tab.preferences')"></button>
         <button class="px-4 py-1.5 rounded-lg text-sm font-medium transition-all"
                 :class="activeTab === 'data'
                   ? 'bg-base-100 shadow-sm text-base-content'
                   : 'text-base-content/50 hover:text-base-content'"
-                @click="activeTab = 'data'">Data</button>
+                @click="activeTab = 'data'" x-text="$t('settings.tab.data')"></button>
       </div>
 
       <!-- Vehicles tab -->
       <div x-show="activeTab === 'vehicles'">
         <div class="flex justify-between items-center mb-3">
-          <h2 class="font-semibold">Your Vehicles</h2>
-          <button class="btn btn-sm btn-primary" @click="openAddVehicle()">+ Add Vehicle</button>
+          <h2 class="font-semibold" x-text="$t('settings.vehicles.title')"></h2>
+          <button class="btn btn-sm btn-primary" @click="openAddVehicle()" x-text="$t('settings.vehicles.addBtn')"></button>
         </div>
 
-        <div x-show="vehicles.length === 0" class="text-center text-base-content/50 py-10">
-          No vehicles yet. Add one to get started.
-        </div>
+        <div x-show="vehicles.length === 0" class="text-center text-base-content/50 py-10"
+             x-text="$t('settings.vehicles.empty')"></div>
 
         <div class="overflow-x-auto rounded-xl border border-base-200" x-show="vehicles.length > 0">
           <table class="table table-zebra">
             <thead class="bg-base-200/60 text-xs">
-              <tr><th>Vehicle</th><th>Year</th><th>VIN / Notes</th><th></th></tr>
+              <tr>
+                <th x-text="$t('settings.vehicles.col.vehicle')"></th>
+                <th x-text="$t('settings.vehicles.col.year')"></th>
+                <th x-text="$t('settings.vehicles.col.vinNotes')"></th>
+                <th></th>
+              </tr>
             </thead>
             <tbody>
               <template x-for="v in vehicles" :key="v.id">
@@ -1059,10 +1060,10 @@
                       x-text="v.vin || v.notes || '—'"></td>
                   <td>
                     <div class="flex gap-1 justify-end">
-                      <button class="btn btn-xs btn-ghost" @click="openEditVehicle(v)" title="Edit vehicle"
+                      <button class="btn btn-xs btn-ghost" @click="openEditVehicle(v)" :title="$t('action.edit')"
                               x-html="Strings.icon('pencil', 'w-3.5 h-3.5')"></button>
                       <button class="btn btn-xs btn-ghost text-error opacity-40 hover:opacity-100 transition-opacity"
-                              @click="confirmDeleteVehicle(v)" title="Delete vehicle"
+                              @click="confirmDeleteVehicle(v)" :title="$t('action.delete')"
                               x-html="Strings.icon('trash', 'w-3.5 h-3.5')"></button>
                     </div>
                   </td>
@@ -1076,48 +1077,56 @@
       <!-- Preferences tab -->
       <div x-show="activeTab === 'preferences'" class="space-y-4">
         <div class="form-control">
-          <label class="label"><span class="label-text font-medium">Distance Unit</span></label>
+          <label class="label"><span class="label-text font-medium" x-text="$t('settings.pref.distanceUnit')"></span></label>
           <div class="join">
             <button class="btn join-item" :class="distanceUnit === 'km' ? 'btn-primary' : 'btn-outline'"
-                    @click="setUnit('km')">Kilometres (km)</button>
+                    @click="setUnit('km')" x-text="$t('settings.pref.km')"></button>
             <button class="btn join-item" :class="distanceUnit === 'miles' ? 'btn-primary' : 'btn-outline'"
-                    @click="setUnit('miles')">Miles</button>
+                    @click="setUnit('miles')" x-text="$t('settings.pref.miles')"></button>
           </div>
         </div>
         <div class="form-control">
-          <label class="label"><span class="label-text font-medium">Currency</span></label>
+          <label class="label"><span class="label-text font-medium" x-text="$t('settings.pref.currency')"></span></label>
           <select class="select select-bordered w-full" @change="setCurrency($event.target.value)">
             <template x-for="c in currencies" :key="c">
               <option :value="c" :selected="c === Alpine.store('app').currency" x-text="c"></option>
             </template>
           </select>
-          <label class="label"><span class="label-text-alt text-base-content/50">Changes how costs are displayed — no currency conversion is performed.</span></label>
+          <label class="label"><span class="label-text-alt text-base-content/50" x-text="$t('settings.pref.currencyNote')"></span></label>
         </div>
         <div class="form-control">
-          <label class="label"><span class="label-text font-medium">Theme</span></label>
+          <label class="label"><span class="label-text font-medium" x-text="$t('settings.pref.theme')"></span></label>
           <div class="join">
             <button class="btn join-item" :class="theme === 'light' ? 'btn-primary' : 'btn-outline'"
-                    @click="setTheme('light')">☀️ Light</button>
+                    @click="setTheme('light')" x-text="$t('settings.pref.themeLight')"></button>
             <button class="btn join-item" :class="theme === 'dark' ? 'btn-primary' : 'btn-outline'"
-                    @click="setTheme('dark')">🌙 Dark</button>
+                    @click="setTheme('dark')" x-text="$t('settings.pref.themeDark')"></button>
           </div>
+        </div>
+        <div class="form-control">
+          <label class="label"><span class="label-text font-medium" x-text="$t('settings.pref.language')"></span></label>
+          <select class="select select-bordered w-full" @change="setLocale($event.target.value)">
+            <template x-for="code in I18n.SUPPORTED" :key="code">
+              <option :value="code" :selected="code === locale" x-text="I18n.LOCALE_NAMES[code]"></option>
+            </template>
+          </select>
         </div>
 
         <!-- Alert thresholds -->
         <div>
-          <p class="label-text font-medium mb-2">Alert Thresholds <span class="text-xs font-normal text-base-content/50">(Due Soon badge)</span></p>
+          <p class="label-text font-medium mb-2"><span x-text="$t('settings.pref.alertThresholds')"></span> <span class="text-xs font-normal text-base-content/50" x-text="$t('settings.pref.dueSoonBadge')"></span></p>
           <div class="grid grid-cols-3 gap-3">
             <div class="form-control">
-              <label class="label pb-1"><span class="label-text text-xs">Remaining life</span></label>
+              <label class="label pb-1"><span class="label-text text-xs" x-text="$t('settings.pref.remainingLife')"></span></label>
               <label class="input input-bordered input-sm flex items-center gap-1">
                 <input type="number" class="grow w-12 text-center" min="1"
                        :value="alertThresholds.dueSoonDays"
                        @change="setAlertThreshold('dueSoonDays', $event.target.value)">
-                <span class="text-xs text-base-content/50">days</span>
+                <span class="text-xs text-base-content/50" x-text="$t('settings.pref.days')"></span>
               </label>
             </div>
             <div class="form-control">
-              <label class="label pb-1"><span class="label-text text-xs">Remaining mileage</span></label>
+              <label class="label pb-1"><span class="label-text text-xs" x-text="$t('settings.pref.remainingMileage')"></span></label>
               <label class="input input-bordered input-sm flex items-center gap-1">
                 <input type="number" class="grow w-12 text-center" min="1"
                        :value="alertThresholds.dueSoonKm"
@@ -1126,24 +1135,24 @@
               </label>
             </div>
             <div class="form-control">
-              <label class="label pb-1"><span class="label-text text-xs">Est. life from mileage</span></label>
+              <label class="label pb-1"><span class="label-text text-xs" x-text="$t('settings.pref.estFromMileage')"></span></label>
               <label class="input input-bordered input-sm flex items-center gap-1">
                 <input type="number" class="grow w-12 text-center" min="1"
                        :value="alertThresholds.dueSoonKmDays"
                        @change="setAlertThreshold('dueSoonKmDays', $event.target.value)">
-                <span class="text-xs text-base-content/50">days</span>
+                <span class="text-xs text-base-content/50" x-text="$t('settings.pref.days')"></span>
               </label>
             </div>
           </div>
-          <p class="text-xs text-base-content/40 mt-1">Upcoming badge fires at 2× these values.</p>
+          <p class="text-xs text-base-content/40 mt-1" x-text="$t('settings.pref.upcomingNote')"></p>
         </div>
 
         <!-- Condition traffic-light thresholds -->
         <div>
-          <p class="label-text font-medium mb-2">Condition Traffic Lights <span class="text-xs font-normal text-base-content/50">(part health %)</span></p>
+          <p class="label-text font-medium mb-2"><span x-text="$t('settings.pref.condTrafficLights')"></span> <span class="text-xs font-normal text-base-content/50" x-text="$t('settings.pref.partHealthPct')"></span></p>
           <div class="grid grid-cols-2 gap-3">
             <div class="form-control">
-              <label class="label pb-1"><span class="label-text text-xs">🟡 Amber below</span></label>
+              <label class="label pb-1"><span class="label-text text-xs" x-text="$t('settings.pref.amberBelow')"></span></label>
               <label class="input input-bordered input-sm flex items-center gap-1">
                 <input type="number" class="grow w-12 text-center" min="1" max="99"
                        :value="alertThresholds.conditionAmber"
@@ -1152,7 +1161,7 @@
               </label>
             </div>
             <div class="form-control">
-              <label class="label pb-1"><span class="label-text text-xs">🔴 Red below</span></label>
+              <label class="label pb-1"><span class="label-text text-xs" x-text="$t('settings.pref.redBelow')"></span></label>
               <label class="input input-bordered input-sm flex items-center gap-1">
                 <input type="number" class="grow w-12 text-center" min="1" max="99"
                        :value="alertThresholds.conditionRed"
@@ -1161,7 +1170,7 @@
               </label>
             </div>
           </div>
-          <p class="text-xs text-base-content/40 mt-1">Green ≥ amber threshold. Amber ≥ red threshold. Red below that.</p>
+          <p class="text-xs text-base-content/40 mt-1" x-text="$t('settings.pref.condNote')"></p>
         </div>
 
       </div>
@@ -1170,11 +1179,11 @@
       <div x-show="activeTab === 'data'" class="space-y-4">
         <div class="card bg-base-100 shadow-sm">
           <div class="card-body p-4">
-            <h3 class="font-semibold mb-1">Export / Import</h3>
-            <p class="text-sm text-base-content/60 mb-3">Save a full backup of all vehicles, parts, and odometer history.</p>
-            <button class="btn btn-outline w-full mb-2" @click="exportData()">⬇ Export Database (JSON)</button>
+            <h3 class="font-semibold mb-1" x-text="$t('settings.data.exportTitle')"></h3>
+            <p class="text-sm text-base-content/60 mb-3" x-text="$t('settings.data.exportDesc')"></p>
+            <button class="btn btn-outline w-full mb-2" @click="exportData()" x-text="$t('settings.data.exportBtn')"></button>
             <label class="btn btn-outline w-full cursor-pointer">
-              ⬆ Import Database (JSON)
+              <span x-text="$t('settings.data.importBtn')"></span>
               <input type="file" accept=".json" class="hidden" @change="importData($event)">
             </label>
             <div x-show="importError" class="alert alert-error py-2 text-sm mt-2" x-text="importError"></div>
@@ -1184,21 +1193,21 @@
 
         <div class="card bg-base-100 shadow-sm">
           <div class="card-body p-4">
-            <h3 class="font-semibold mb-1">Parts Database (Toyota / Daihatsu)</h3>
+            <h3 class="font-semibold mb-1" x-text="$t('settings.data.epcTitle')"></h3>
             <p class="text-sm text-base-content/60 mb-2">
-              Current version: <strong x-text="partsDbVersion"></strong>
+              <span x-text="$t('settings.data.epcCurrentVersion')"></span> <strong x-text="partsDbVersion"></strong>
             </p>
-            <p class="text-sm text-base-content/60 mb-3">The app auto-checks for updates weekly. You can also update manually.</p>
-            <button class="btn btn-outline w-full" @click="checkPartsDbUpdate()">🔄 Check for Updates Now</button>
+            <p class="text-sm text-base-content/60 mb-3" x-text="$t('settings.data.epcDesc')"></p>
+            <button class="btn btn-outline w-full" @click="checkPartsDbUpdate()" x-text="$t('settings.data.epcUpdateBtn')"></button>
             <div x-show="epcStatus" class="text-sm mt-2 text-base-content/70" x-text="epcStatus"></div>
           </div>
         </div>
 
         <div class="card bg-base-100 shadow-sm border border-error/30">
           <div class="card-body p-4">
-            <h3 class="font-semibold text-error mb-1">Danger Zone</h3>
-            <p class="text-sm text-base-content/60 mb-3">Permanently delete all data. This cannot be undone.</p>
-            <button class="btn btn-error btn-outline w-full" @click="clearAllData()">🗑 Clear All Data</button>
+            <h3 class="font-semibold text-error mb-1" x-text="$t('settings.data.dangerTitle')"></h3>
+            <p class="text-sm text-base-content/60 mb-3" x-text="$t('settings.data.dangerDesc')"></p>
+            <button class="btn btn-error btn-outline w-full" @click="clearAllData()" x-text="$t('settings.data.clearBtn')"></button>
           </div>
         </div>
       </div>
@@ -1207,55 +1216,55 @@
       <dialog id="vehicleModal" class="modal">
         <div class="modal-box max-w-md">
             <h3 class="font-bold text-lg mb-4"
-                x-text="vehicleForm.id ? 'Edit Vehicle' : 'Add Vehicle'"></h3>
+                x-text="vehicleForm?.id ? $t('settings.vehicle.editTitle') : $t('settings.vehicle.addTitle')"></h3>
             <div class="space-y-3">
               <div class="form-control">
-                <label class="label"><span class="label-text">Nickname / Label <span class="text-error">*</span></span></label>
+                <label class="label"><span class="label-text"><span x-text="$t('settings.vehicle.nickname')"></span> <span class="text-error">*</span></span></label>
                 <input type="text" class="input input-bordered w-full"
-                       placeholder="e.g. Daily Driver, Work Ute"
+                       :placeholder="$t('settings.vehicle.nicknamePlaceholder')"
                        x-model="vehicleForm.name">
               </div>
               <div class="grid grid-cols-2 gap-2">
                 <div class="form-control">
-                  <label class="label"><span class="label-text">Make <span class="text-error">*</span></span></label>
-                  <input type="text" class="input input-bordered w-full" placeholder="Toyota"
+                  <label class="label"><span class="label-text"><span x-text="$t('settings.vehicle.make')"></span> <span class="text-error">*</span></span></label>
+                  <input type="text" class="input input-bordered w-full" :placeholder="$t('settings.vehicle.makePlaceholder')"
                          x-model="vehicleForm.make">
                 </div>
                 <div class="form-control">
-                  <label class="label"><span class="label-text">Model <span class="text-error">*</span></span></label>
-                  <input type="text" class="input input-bordered w-full" placeholder="Corolla"
+                  <label class="label"><span class="label-text"><span x-text="$t('settings.vehicle.model')"></span> <span class="text-error">*</span></span></label>
+                  <input type="text" class="input input-bordered w-full" :placeholder="$t('settings.vehicle.modelPlaceholder')"
                          x-model="vehicleForm.model">
                 </div>
               </div>
               <div class="grid grid-cols-2 gap-2">
                 <div class="form-control">
-                  <label class="label"><span class="label-text">Year <span class="text-error">*</span></span></label>
+                  <label class="label"><span class="label-text"><span x-text="$t('settings.vehicle.year')"></span> <span class="text-error">*</span></span></label>
                   <input type="number" class="input input-bordered w-full"
                          placeholder="2019" min="1900" max="2030"
                          x-model="vehicleForm.year">
                 </div>
                 <div class="form-control">
-                  <label class="label"><span class="label-text">Colour</span></label>
+                  <label class="label"><span class="label-text" x-text="$t('settings.vehicle.colour')"></span></label>
                   <input type="color" class="input input-bordered w-full h-12 p-1 cursor-pointer"
                          x-model="vehicleForm.color">
                 </div>
               </div>
               <div class="form-control">
-                <label class="label"><span class="label-text">VIN (optional)</span></label>
+                <label class="label"><span class="label-text" x-text="$t('settings.vehicle.vin')"></span></label>
                 <input type="text" class="input input-bordered w-full"
-                       placeholder="17-character VIN"
+                       :placeholder="$t('settings.vehicle.vinPlaceholder')"
                        x-model="vehicleForm.vin" maxlength="17">
               </div>
               <div class="form-control">
-                <label class="label"><span class="label-text">Notes</span></label>
+                <label class="label"><span class="label-text" x-text="$t('settings.vehicle.notes')"></span></label>
                 <textarea class="textarea textarea-bordered w-full" rows="2"
-                          x-model="vehicleForm.notes" placeholder="Engine variant, mods, etc."></textarea>
+                          x-model="vehicleForm.notes" :placeholder="$t('settings.vehicle.notesPlaceholder')"></textarea>
               </div>
               <div x-show="vehicleFormError" class="alert alert-error py-2 text-sm" x-text="vehicleFormError"></div>
             </div>
             <div class="modal-action">
-              <button class="btn btn-ghost" onclick="document.getElementById('vehicleModal').close()">Cancel</button>
-              <button class="btn btn-primary" @click="saveVehicle()">Save</button>
+              <button class="btn btn-ghost" onclick="document.getElementById('vehicleModal').close()" x-text="$t('action.cancel')"></button>
+              <button class="btn btn-primary" @click="saveVehicle()" x-text="$t('action.save')"></button>
             </div>
           </div>
         <form method="dialog" class="modal-backdrop"><button>close</button></form>
@@ -1281,8 +1290,8 @@
             },
             async save() {
               const odo = Number(this.odometer);
-              if (!this.date)       { this.error = 'Date is required.'; return; }
-              if (!odo || odo <= 0) { this.error = 'Enter a valid odometer reading.'; return; }
+              if (!this.date)       { this.error = I18n.t('err.dateRequired'); return; }
+              if (!odo || odo <= 0) { this.error = I18n.t('err.odoInvalid'); return; }
               const vid = Alpine.store('app').currentVehicleId;
               const err = await DB.validateOdometerReading(vid, this.date, odo);
               if (err) { this.error = err; return; }
@@ -1295,34 +1304,34 @@
               });
               await DB.reinterpolateOdometers(vid);
               document.getElementById('quickOdoModal').close();
-              Alpine.store('app').notify('Odometer reading saved.', 'success');
+              Alpine.store('app').notify(I18n.t('notif.odoSaved'), 'success');
               window.dispatchEvent(new CustomEvent('vehicle-changed'));
             }
           }">
     <div class="modal-box max-w-sm">
-      <h3 class="font-bold text-lg">Log Odometer Reading</h3>
+      <h3 class="font-bold text-lg" x-text="I18n.t('odo.title')"></h3>
       <p class="text-sm text-base-content/60 mb-4"
          x-text="Alpine.store('app').currentVehicle?.name || ''"></p>
       <div class="space-y-3">
         <div class="form-control">
-          <label class="label"><span class="label-text">Date</span></label>
+          <label class="label"><span class="label-text" x-text="I18n.t('odo.dateLabel')"></span></label>
           <input type="date" class="input input-bordered w-full" x-model="date">
         </div>
         <div class="form-control">
-          <label class="label"><span class="label-text">Odometer (km)</span></label>
-          <input type="number" class="input input-bordered w-full" placeholder="e.g. 82450"
+          <label class="label"><span class="label-text" x-text="I18n.t('odo.odoLabel')"></span></label>
+          <input type="number" class="input input-bordered w-full" :placeholder="I18n.t('odo.odoPlaceholder')"
                  x-model="odometer" min="0">
         </div>
         <div class="form-control">
-          <label class="label"><span class="label-text">Notes (optional)</span></label>
+          <label class="label"><span class="label-text" x-text="I18n.t('odo.notesLabel')"></span></label>
           <input type="text" class="input input-bordered w-full" x-model="notes"
-                 placeholder="e.g. Pre-service reading">
+                 :placeholder="I18n.t('odo.notesPlaceholder')">
         </div>
         <div x-show="error" class="alert alert-error py-2 text-sm" x-text="error"></div>
       </div>
       <div class="modal-action">
-        <button class="btn btn-ghost" onclick="document.getElementById('quickOdoModal').close()">Cancel</button>
-        <button class="btn btn-primary" @click="save()">Save</button>
+        <button class="btn btn-ghost" onclick="document.getElementById('quickOdoModal').close()" x-text="I18n.t('action.cancel')"></button>
+        <button class="btn btn-primary" @click="save()" x-text="I18n.t('action.save')"></button>
       </div>
     </div>
     <form method="dialog" class="modal-backdrop"><button>close</button></form>

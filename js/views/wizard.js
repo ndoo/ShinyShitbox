@@ -256,11 +256,11 @@ document.addEventListener('alpine:init', () => {
       if (epcData?.maintenance) {
         this.kmInterval = epcData.maintenance.kmInterval ?? pt.defaultKmInterval ?? '';
         this._setDaysInterval(epcData.maintenance.daysInterval ?? pt.defaultDaysInterval);
-        this.intervalSource = epcData.maintenance.kmInterval ? 'EPC data' : 'Toyota/Daihatsu default';
+        this.intervalSource = epcData.maintenance.kmInterval ? 'intervalSrc.epc' : 'intervalSrc.default';
       } else {
         this.kmInterval = pt.defaultKmInterval ?? '';
         this._setDaysInterval(pt.defaultDaysInterval);
-        this.intervalSource = pt.defaultKmInterval ? 'Part type default' : '';
+        this.intervalSource = pt.defaultKmInterval ? 'intervalSrc.partType' : '';
       }
       // If a variant is already selected (e.g. edit flow), apply its intervals on top
       if (this.grade) this._applyVariantIntervals();
@@ -274,8 +274,8 @@ document.addEventListener('alpine:init', () => {
       const history = await DB.getPartHistory(vehicleId, pt.id);
       if (!history.length) return;
       const last = history[history.length - 1];
-      if (last.expectedKmInterval   != null) { this.kmInterval = last.expectedKmInterval; this.intervalSource = 'Your history'; }
-      if (last.expectedDaysInterval != null) { this._setDaysInterval(last.expectedDaysInterval); this.intervalSource = 'Your history'; }
+      if (last.expectedKmInterval   != null) { this.kmInterval = last.expectedKmInterval; this.intervalSource = 'intervalSrc.history'; }
+      if (last.expectedDaysInterval != null) { this._setDaysInterval(last.expectedDaysInterval); this.intervalSource = 'intervalSrc.history'; }
     },
 
     async saveNewPartType() {
@@ -415,11 +415,11 @@ document.addEventListener('alpine:init', () => {
             notes:                this.notes         || null,
           });
           await DB.reinterpolateOdometers(Alpine.store('app').currentVehicleId);
-          Alpine.store('app').notify('Part record updated.', 'success');
+          Alpine.store('app').notify(I18n.t('notif.partUpdated'), 'success');
           Alpine.store('app').navigate('vehicle-detail');
           window.dispatchEvent(new CustomEvent('vehicle-changed'));
         } catch (e) {
-          this.saveError = 'Save failed: ' + e.message;
+          this.saveError = I18n.t('err.saveFailed') + ' ' + e.message;
         } finally {
           this.saving = false;
         }
@@ -429,10 +429,7 @@ document.addEventListener('alpine:init', () => {
       // Guard: exact-match outgoing parts exist but user chose "new addition" — confirm intent
       if (this.exactMatchCandidates.length > 0 && this.selectedOutgoingId === null) {
         const names = this.exactMatchCandidates.map(c => c.partName).join(', ');
-        const ok = confirm(
-          `You already have "${names}" installed but chose not to replace it.\n\n` +
-          `Proceeding will create a duplicate record.\n\nContinue anyway?`
-        );
+        const ok = confirm(I18n.t('confirm.duplicatePart', { names }));
         if (!ok) return;
       }
 
@@ -449,9 +446,7 @@ document.addEventListener('alpine:init', () => {
           if (existing) {
             const existingFmt = Utils.formatDistance(existing.odometer, Alpine.store('app').distanceUnit);
             const newFmt      = Utils.formatDistance(odo, Alpine.store('app').distanceUnit);
-            const ok = confirm(
-              `An odometer reading of ${existingFmt} already exists for ${Utils.formatDate(this.installDate)}.\n\nReplace it with ${newFmt}?`
-            );
+            const ok = confirm(I18n.t('confirm.replaceOdo', { existing: existingFmt, date: Utils.formatDate(this.installDate), new: newFmt }));
             if (!ok) { this.saving = false; return; }
           }
         }
@@ -504,13 +499,12 @@ document.addEventListener('alpine:init', () => {
         // Backfill any null odometer values that now have readings spanning them
         await DB.reinterpolateOdometers(vehicleId);
 
-        Alpine.store('app').notify(
-          `${this.selectedPartType.name} recorded successfully.`, 'success');
+        Alpine.store('app').notify(I18n.t('notif.partRecorded', { name: this.selectedPartType.name }), 'success');
         Alpine.store('app').navigate('vehicle-detail');
         // Trigger vehicle-detail to reload its data
         window.dispatchEvent(new CustomEvent('vehicle-changed'));
       } catch (e) {
-        this.saveError = 'Save failed: ' + e.message;
+        this.saveError = I18n.t('err.saveFailed') + ' ' + e.message;
       } finally {
         this.saving = false;
       }
@@ -539,19 +533,19 @@ document.addEventListener('alpine:init', () => {
       if (epcVariant) {
         this.kmInterval = epcVariant.kmInterval ?? this.kmInterval;
         if (epcVariant.daysInterval) this._setDaysInterval(epcVariant.daysInterval);
-        this.intervalSource = 'EPC data';
+        this.intervalSource = 'intervalSrc.epc';
         return;
       }
       const ptVariant = this.partVariants.find(v => v.label === this.grade);
       if (ptVariant) {
         this.kmInterval = ptVariant.kmInterval ?? this.kmInterval;
         if (ptVariant.daysInterval) this._setDaysInterval(ptVariant.daysInterval);
-        this.intervalSource = 'Variant default';
+        this.intervalSource = 'intervalSrc.variant';
       }
     },
 
     sourceLabel(s) {
-      return { 'oem-genuine': 'OEM Genuine', aftermarket: 'Aftermarket', generic: 'Generic/Unbranded', 'oem-brand': 'Aftermarket' }[s] || s;
+      return s ? I18n.t('source.' + s) : s;
     },
     fmt(km)     { return Utils.formatDistance(km, Alpine.store('app').distanceUnit); },
     fmtDate(d)  { return Utils.formatDate(d); },

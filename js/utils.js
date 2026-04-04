@@ -26,7 +26,8 @@ window.Utils = (() => {
   function formatDate(isoOrDate) {
     if (!isoOrDate) return '—';
     const d = isoOrDate instanceof Date ? isoOrDate : new Date(isoOrDate);
-    return d.toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' });
+    const locale = window.I18n ? I18n.locale : undefined;
+    return d.toLocaleDateString(locale, { day: 'numeric', month: 'short', year: 'numeric' });
   }
 
   // ── Distance / currency formatting ──────────────────────────────
@@ -58,11 +59,12 @@ window.Utils = (() => {
   ];
 
   function conditionLabel(pct) {
-    if (pct == null) return { label: 'Unknown', colorClass: 'condition-bar-unknown', badgeClass: 'badge-ghost' };
-    if (pct >= 75)  return { label: 'Good',    colorClass: 'condition-bar-good',     badgeClass: 'badge-success' };
-    if (pct >= 40)  return { label: 'Fair',    colorClass: 'condition-bar-warning',  badgeClass: 'badge-warning' };
-    if (pct >= 10)  return { label: 'Poor',    colorClass: 'condition-bar-critical', badgeClass: 'badge-error'   };
-    return                 { label: 'Failed',  colorClass: 'condition-bar-critical', badgeClass: 'badge-error'   };
+    const _t = window.I18n ? k => I18n.t(k) : k => ({ 'cond.unknown': 'Unknown', 'cond.good': 'Good', 'cond.fair': 'Fair', 'cond.poor': 'Poor', 'cond.failed': 'Failed' }[k] || k);
+    if (pct == null) return { label: _t('cond.unknown'), colorClass: 'condition-bar-unknown', badgeClass: 'badge-ghost' };
+    if (pct >= 75)  return { label: _t('cond.good'),    colorClass: 'condition-bar-good',     badgeClass: 'badge-success' };
+    if (pct >= 40)  return { label: _t('cond.fair'),    colorClass: 'condition-bar-warning',  badgeClass: 'badge-warning' };
+    if (pct >= 10)  return { label: _t('cond.poor'),    colorClass: 'condition-bar-critical', badgeClass: 'badge-error'   };
+    return                 { label: _t('cond.failed'),  colorClass: 'condition-bar-critical', badgeClass: 'badge-error'   };
   }
 
   // ── Odometer interpolation ───────────────────────────────────────
@@ -148,9 +150,15 @@ window.Utils = (() => {
     const kmIsLimiting = kmData && (!timeData || (kmData.progress / correctionFactor) >= (timeData.progress / correctionFactor));
     let tooltip = '';
     if (kmIsLimiting) {
-      tooltip = `${kmData.elapsed.toLocaleString()} of ${kmData.interval.toLocaleString()} km used`;
+      const tmpl = window.I18n ? I18n.t('tooltip.kmUsed') : '{elapsed} of {interval} km used';
+      tooltip = tmpl
+        .replace('{elapsed}', kmData.elapsed.toLocaleString())
+        .replace('{interval}', kmData.interval.toLocaleString());
     } else if (timeData) {
-      tooltip = `${formatDuration(timeData.elapsed)} of ${formatDuration(timeData.interval)} used`;
+      const tmpl = window.I18n ? I18n.t('tooltip.timeUsed') : '{elapsed} of {interval} used';
+      tooltip = tmpl
+        .replace('{elapsed}', formatDuration(timeData.elapsed))
+        .replace('{interval}', formatDuration(timeData.interval));
     }
 
     return { value, tooltip };
@@ -225,6 +233,7 @@ window.Utils = (() => {
   }
 
   function urgencyLabel(urgency) {
+    if (window.I18n) return I18n.t('urgency.' + urgency) || urgency;
     return { overdue: 'Overdue', 'due-soon': 'Due Soon', upcoming: 'Upcoming', ok: 'OK' }[urgency] || urgency;
   }
 
@@ -237,31 +246,34 @@ window.Utils = (() => {
    */
   function formatDuration(days) {
     if (days == null || days < 0) return '—';
+    const _t = window.I18n ? k => I18n.t(k) : k => ({ 'dur.yr': 'yr', 'dur.mo': 'mo', 'dur.d': 'd' }[k] || k);
     days = Math.round(days);
     if (days >= 365) {
       const y = Math.floor(days / 365);
       const rem = days - y * 365;
       let m = Math.round(rem / 30);
-      if (m >= 12) return `${y + 1}yr`;        // avoid "6yr 12mo"
-      return m > 0 ? `${y}yr ${m}mo` : `${y}yr`;
+      if (m >= 12) return `${y + 1}${_t('dur.yr')}`;
+      return m > 0 ? `${y}${_t('dur.yr')} ${m}${_t('dur.mo')}` : `${y}${_t('dur.yr')}`;
     }
     if (days >= 30) {
       const m = Math.floor(days / 30);
       const rem = days - m * 30;
-      return rem > 0 ? `${m}mo ${rem}d` : `${m}mo`;
+      return rem > 0 ? `${m}${_t('dur.mo')} ${rem}${_t('dur.d')}` : `${m}${_t('dur.mo')}`;
     }
-    return `${days}d`;
+    return `${days}${_t('dur.d')}`;
   }
 
   function formatDueDescription(due, unit = 'km') {
     if (!due) return '—';
+    const _over    = window.I18n ? I18n.t('due.over')    : 'over';
+    const _overdue = window.I18n ? I18n.t('due.overdue') : 'Overdue';
     if (due.urgency === 'overdue') {
       const parts = [];
       if (due.kmRemaining  != null && due.kmRemaining  < 0)
-        parts.push(`${formatDistance(Math.abs(due.kmRemaining), unit)} over`);
+        parts.push(`${formatDistance(Math.abs(due.kmRemaining), unit)} ${_over}`);
       if (due.daysRemaining != null && due.daysRemaining < 0)
-        parts.push(`${formatDuration(Math.abs(due.daysRemaining))} over`);
-      return parts.join(' / ') || 'Overdue';
+        parts.push(`${formatDuration(Math.abs(due.daysRemaining))} ${_over}`);
+      return parts.join(' / ') || _overdue;
     }
     const parts = [];
     if (due.daysRemaining != null && due.daysRemaining >= 0)

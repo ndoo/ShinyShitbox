@@ -6,10 +6,10 @@
 document.addEventListener('alpine:init', () => {
 
   const FIXED_COLUMNS = [
-    { key: 'due',         label: 'Remaining',    visible: true },
-    { key: 'installDate', label: 'Install Date', visible: true },
-    { key: 'brand',       label: 'Brand',        visible: true },
-    { key: 'grade',       label: 'Grade',        visible: true },
+    { key: 'due',         labelKey: 'col.remaining',   visible: true },
+    { key: 'installDate', labelKey: 'col.installDate',  visible: true },
+    { key: 'brand',       labelKey: 'col.brand',        visible: true },
+    { key: 'grade',       labelKey: 'col.grade',        visible: true },
   ];
 
   Alpine.data('vehicleDetailView', () => ({
@@ -164,11 +164,12 @@ document.addEventListener('alpine:init', () => {
           return part.brand
             ? `<span class="text-xs">${esc(part.brand)}</span>`
             : '<span class="opacity-40 text-xs">—</span>';
-        case 'source':
-          const srcLabel = { 'oem-genuine': 'OEM Genuine', aftermarket: 'Aftermarket', generic: 'Generic', 'oem-brand': 'Aftermarket' }[part.partSource] || part.partSource || null;
+        case 'source': {
+          const srcLabel = part.partSource ? I18n.t('source.' + part.partSource) : null;
           return srcLabel
             ? `<span class="badge badge-ghost badge-xs">${esc(srcLabel)}</span>`
             : '<span class="opacity-40 text-xs">—</span>';
+        }
         case 'grade': {
           if (!part.grade) return '<span class="opacity-40 text-xs">—</span>';
           return `<span class="text-xs whitespace-nowrap">${esc(part.grade)}</span>`;
@@ -268,7 +269,7 @@ document.addEventListener('alpine:init', () => {
       // Build optional forecast dataset: dotted segment from last real reading → today.
       const todayTs = new Date().setHours(0, 0, 0, 0); // midnight today, stable timestamp
       const forecastDataset = this.forecastedOdometer ? {
-        label: 'Forecast',
+        label: I18n.t('vd.chart.forecast'),
         data: [data[data.length - 1], { x: todayTs, y: toDisplay(this.forecastedOdometer) }],
         borderColor: 'hsl(217, 91%, 60%)',
         borderDash: [6, 4],
@@ -291,7 +292,7 @@ document.addEventListener('alpine:init', () => {
         data: {
           datasets: [
             {
-              label: `Odometer (${Alpine.store('app').distanceUnit})`,
+              label: `${I18n.t('vd.odoTable.odometer')} (${Alpine.store('app').distanceUnit})`,
               data,
               borderColor: 'hsl(217, 91%, 60%)',          // blue — canvas-safe hsl
               backgroundColor: 'hsla(217, 91%, 60%, 0.1)',
@@ -315,7 +316,7 @@ document.addEventListener('alpine:init', () => {
               callbacks: {
                 label: ctx => {
                   const base = `${ctx.parsed.y.toLocaleString()} ${Alpine.store('app').distanceUnit}`;
-                  return ctx.datasetIndex === 1 ? `${base} (forecast)` : base;
+                  return ctx.datasetIndex === 1 ? `${base} (${I18n.t('vd.chart.forecast')})` : base;
                 },
               },
             },
@@ -369,8 +370,8 @@ document.addEventListener('alpine:init', () => {
     async saveEditOdo() {
       const odo = Number(this.editOdoForm.odometer);
       const vid = Alpine.store('app').currentVehicleId;
-      if (!this.editOdoForm.date)  { this.editOdoError = 'Date is required.'; return; }
-      if (!odo || odo <= 0)        { this.editOdoError = 'Enter a valid odometer reading.'; return; }
+      if (!this.editOdoForm.date)  { this.editOdoError = I18n.t('err.dateRequired'); return; }
+      if (!odo || odo <= 0)        { this.editOdoError = I18n.t('err.odoInvalid'); return; }
       const err = await DB.validateOdometerReading(vid, this.editOdoForm.date, odo, this.editingOdoId);
       if (err) { this.editOdoError = err; return; }
       await DB.updateOdometerReading(this.editingOdoId, {
@@ -380,17 +381,17 @@ document.addEventListener('alpine:init', () => {
       });
       await DB.reinterpolateOdometers(vid);
       this.editingOdoId = null;
-      Alpine.store('app').notify('Odometer reading updated.', 'success');
+      Alpine.store('app').notify(I18n.t('notif.odoUpdated'), 'success');
       await this.loadAll(vid);
     },
 
     async deleteOdo(reading) {
       const label = `${this.fmtDate(reading.date)} — ${this.fmt(reading.odometer)}`;
-      if (!confirm(`Delete reading:\n${label}\n\nThis cannot be undone.`)) return;
+      if (!confirm(I18n.t('confirm.deleteOdo', { label }))) return;
       const vid = Alpine.store('app').currentVehicleId;
       await DB.deleteOdometerReading(reading.id);
       await DB.reinterpolateOdometers(vid);
-      Alpine.store('app').notify('Odometer reading deleted.', 'info');
+      Alpine.store('app').notify(I18n.t('notif.odoDeleted'), 'info');
       if (this.editingOdoId === reading.id) this.editingOdoId = null;
       await this.loadAll(vid);
     },
@@ -409,10 +410,10 @@ document.addEventListener('alpine:init', () => {
     },
 
     async deletePartRecord(part) {
-      const label = part.partName + (part.installDate ? ` (installed ${Utils.formatDate(part.installDate)})` : '');
-      if (!confirm(`Delete "${label}"?\n\nThis permanently removes the record and cannot be undone.`)) return;
+      const label = part.partName + (part.installDate ? ` (${I18n.t('label.installed')} ${Utils.formatDate(part.installDate)})` : '');
+      if (!confirm(I18n.t('confirm.deletePart', { label }))) return;
       await DB.deletePartRecord(part.id);
-      Alpine.store('app').notify('Part record deleted.', 'info');
+      Alpine.store('app').notify(I18n.t('notif.partDeleted'), 'info');
       await this.loadAll(Alpine.store('app').currentVehicleId);
     },
 

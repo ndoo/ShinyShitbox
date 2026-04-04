@@ -43,17 +43,18 @@ window.Strings = (() => {
            + `viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">${inner}</svg>`;
     },
 
-    label: {
-      // Actions
-      service:  'Log service',
-      edit:     'Edit',
-      delete:   'Delete',
-      save:     'Save',
-      cancel:   'Cancel',
-      add:      'Add',
-      // Odometer panel toggle
-      manage:   'Manage',
-      hideList: 'Hide List',
+    get label() {
+      const t = window.I18n ? k => I18n.t(k) : k => k;
+      return {
+        service:  t('action.logService'),
+        edit:     t('action.edit'),
+        delete:   t('action.delete'),
+        save:     t('action.save'),
+        cancel:   t('action.cancel'),
+        add:      t('action.add'),
+        manage:   t('action.manage'),
+        hideList: t('action.hideList'),
+      };
     },
   };
 })();

@@ -30,26 +30,26 @@ document.addEventListener('alpine:init', () => {
 
     async saveVehicle() {
       if (!this.vehicleForm.name.trim()) {
-        this.vehicleFormError = 'Name is required.';
+        this.vehicleFormError = I18n.t('err.nameRequired');
         return;
       }
       if (!this.vehicleForm.make.trim() || !this.vehicleForm.model.trim()) {
-        this.vehicleFormError = 'Make and Model are required.';
+        this.vehicleFormError = I18n.t('err.makeModelRequired');
         return;
       }
       if (!this.vehicleForm.year || this.vehicleForm.year < 1900) {
-        this.vehicleFormError = 'Enter a valid year.';
+        this.vehicleFormError = I18n.t('err.yearInvalid');
         return;
       }
       const data = { ...this.vehicleForm };
       if (data.id) {
         await DB.updateVehicle(data.id, data);
-        Alpine.store('app').notify('Vehicle updated.', 'success');
+        Alpine.store('app').notify(I18n.t('notif.vehicleUpdated'), 'success');
       } else {
         delete data.id;
         const id = await DB.addVehicle(data);
         Alpine.store('app').selectVehicle(id);
-        Alpine.store('app').notify('Vehicle added.', 'success');
+        Alpine.store('app').notify(I18n.t('notif.vehicleAdded'), 'success');
       }
       await Alpine.store('app').loadVehicles();
       this.vehicles = await DB.getVehicles();
@@ -58,7 +58,7 @@ document.addEventListener('alpine:init', () => {
     },
 
     async confirmDeleteVehicle(v) {
-      if (!confirm(`Delete "${v.name}" and all its records? This cannot be undone.`)) return;
+      if (!confirm(I18n.t('confirm.deleteVehicle', { name: v.name }))) return;
       await DB.deleteVehicle(v.id);
       await Alpine.store('app').loadVehicles();
       this.vehicles = await DB.getVehicles();
@@ -66,7 +66,7 @@ document.addEventListener('alpine:init', () => {
         const remaining = Alpine.store('app').vehicles;
         Alpine.store('app').selectVehicle(remaining.length ? remaining[0].id : null);
       }
-      Alpine.store('app').notify('Vehicle deleted.', 'info');
+      Alpine.store('app').notify(I18n.t('notif.vehicleDeleted'), 'info');
     },
 
     // ── Preferences ────────────────────────────────────────────────
@@ -76,10 +76,12 @@ document.addEventListener('alpine:init', () => {
     get currency()     { return Alpine.store('app').currency; },
     set currency(v)    { Alpine.store('app').setCurrency(v); },
     get theme()        { return Alpine.store('app').theme; },
+    get locale()       { return Alpine.store('app').locale; },
 
     setUnit(u)       { Alpine.store('app').setDistanceUnit(u); },
     setCurrency(c)   { Alpine.store('app').setCurrency(c); },
     setTheme(t)      { Alpine.store('app').setTheme(t); },
+    setLocale(code)  { Alpine.store('app').setLocale(code); },
 
     // ── Alert thresholds ───────────────────────────────────────────
     get alertThresholds() { return Alpine.store('app').alertThresholds; },
@@ -104,10 +106,10 @@ document.addEventListener('alpine:init', () => {
         a.download = `vehicle-tracker-backup-${Utils.toISODate(new Date())}.json`;
         a.click();
         URL.revokeObjectURL(url);
-        Alpine.store('app').notify('Database exported.', 'success');
+        Alpine.store('app').notify(I18n.t('notif.dbExported'), 'success');
         Alpine.store('app').dismissBackupNudge(); // reset 30-day reminder
       } catch (e) {
-        Alpine.store('app').notify('Export failed: ' + e.message, 'error');
+        Alpine.store('app').notify(I18n.t('epc.exportFailed') + ' ' + e.message, 'error');
       }
     },
 
@@ -116,54 +118,55 @@ document.addEventListener('alpine:init', () => {
       this.importSuccess = '';
       const file = event.target.files[0];
       if (!file) return;
-      if (!confirm('This will OVERWRITE all existing data. Are you sure?')) {
+      if (!confirm(I18n.t('confirm.importOverwrite'))) {
         event.target.value = '';
         return;
       }
       try {
         const blob = new Blob([await file.arrayBuffer()], { type: 'application/json' });
         await DB.importDBFromBlob(blob);
-        this.importSuccess = 'Import successful. Reloading…';
+        this.importSuccess = I18n.t('notif.importReloading');
         await Alpine.store('app').loadVehicles();
         this.vehicles = await DB.getVehicles();
-        Alpine.store('app').notify('Database imported successfully.', 'success');
+        Alpine.store('app').notify(I18n.t('notif.dbImported'), 'success');
         setTimeout(() => location.reload(), 1200);
       } catch (e) {
-        this.importError = 'Import failed: ' + e.message;
+        this.importError = I18n.t('epc.importFailed') + ' ' + e.message;
       }
       event.target.value = '';
     },
 
     async clearAllData() {
-      const first = confirm('This will permanently delete ALL vehicles, parts, and odometer records. Continue?');
+      const first = confirm(I18n.t('confirm.clearAll1'));
       if (!first) return;
-      const second = confirm('Are you absolutely sure? This CANNOT be undone.');
+      const second = confirm(I18n.t('confirm.clearAll2'));
       if (!second) return;
       await DB._db.delete();
       location.reload();
     },
 
     async checkPartsDbUpdate() {
-      this.epcStatus = 'Checking for updates…';
+      this.epcStatus = I18n.t('epc.checking');
       try {
         const result = await EPC.fetchAndCache({ force: true });
         this.epcStatus = result.updated
-          ? `Updated to ${result.version}.`
-          : `Already up to date (${result.version}).`;
+          ? I18n.t('epc.updated', { version: result.version })
+          : I18n.t('epc.upToDate', { version: result.version });
         localStorage.setItem('vat_partsDbChecked', String(Date.now()));
       } catch (e) {
-        this.epcStatus = 'Update failed: ' + e.message;
+        this.epcStatus = I18n.t('epc.updateFailed') + ' ' + e.message;
       }
     },
 
-    partsDbVersion: 'Loading…',
+    partsDbVersion: '',
     async refreshPartsDbVersion() {
+      this.partsDbVersion = I18n.t('settings.data.loading');
       // If not yet cached, attempt a fetch first (handles first-run on a local server)
       let cached = await DB.getPartsDbCache();
       if (!cached) {
         try { await EPC.fetchAndCache(); cached = await DB.getPartsDbCache(); } catch (e) { /* ignore */ }
       }
-      this.partsDbVersion = cached ? cached.version : 'Not loaded';
+      this.partsDbVersion = cached ? cached.version : I18n.t('settings.data.notLoaded');
     },
   }));
 });
