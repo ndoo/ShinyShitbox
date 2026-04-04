@@ -21,8 +21,8 @@ window.I18n = (() => {
 
     // Backup nudge banner
     'nudge.message': "Your data is stored only in this browser. Clear browser data and it's gone.",
-    'nudge.exportLink': 'Export a backup',
-    'nudge.fromSettings': 'from Settings → Data.',
+    'nudge.exportLink': 'Regularly export a backup',
+    'nudge.fromSettings': 'via Settings → Data.',
     'nudge.dismiss': 'Dismiss',
 
     // Dashboard — empty state
@@ -359,8 +359,8 @@ window.I18n = (() => {
     'app.name': 'ShinyShitbox',
     'nav.settings': 'Tetapan',
     'nudge.message': "Data anda disimpan hanya dalam pelayar ini. Padam data pelayar dan ia hilang.",
-    'nudge.exportLink': 'Eksport sandaran',
-    'nudge.fromSettings': 'dari Tetapan → Data.',
+    'nudge.exportLink': 'Eksport sandaran secara berkala',
+    'nudge.fromSettings': 'melalui Tetapan → Data.',
     'nudge.dismiss': 'Tutup',
 
     'dash.noVehicles.title': 'Tiada kenderaan lagi',
@@ -645,8 +645,8 @@ window.I18n = (() => {
     'app.name': 'ShinyShitbox',
     'nav.settings': '设置',
     'nudge.message': "您的数据仅存储在此浏览器中。清除浏览器数据后将永久丢失。",
-    'nudge.exportLink': '导出备份',
-    'nudge.fromSettings': '请到设置 → 数据。',
+    'nudge.exportLink': '定期导出备份',
+    'nudge.fromSettings': '，位于设置 → 数据。',
     'nudge.dismiss': '关闭',
     'dash.noVehicles.title': '暂无车辆',
     'dash.noVehicles.body': '在设置中添加您的第一辆车辆，开始追踪保养间隔和零件状况。',
@@ -923,8 +923,8 @@ window.I18n = (() => {
     'app.name': 'ShinyShitbox',
     'nav.settings': '設定',
     'nudge.message': "您的資料僅儲存在此瀏覽器中。清除瀏覽器資料後將永久消失。",
-    'nudge.exportLink': '匯出備份',
-    'nudge.fromSettings': '請到設定 → 資料。',
+    'nudge.exportLink': '定期匯出備份',
+    'nudge.fromSettings': '，位於設定 → 資料。',
     'nudge.dismiss': '關閉',
     'dash.noVehicles.title': '尚無車輛',
     'dash.noVehicles.body': '在設定中新增您的第一輛車輛，開始追蹤保養間隔和零件狀況。',
