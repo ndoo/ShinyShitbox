@@ -1,7 +1,7 @@
 // Auto-generated from data/parts-db.json — do not edit directly.
 // Run: node scripts/update-parts-db.js
 window.PARTS_DB = {
-  "version": "2026-05-01",
+  "version": "2026-06-01",
   "_comment": "Toyota/Daihatsu parts database. Maintenance intervals sourced from official service schedules. Run /update-parts-db to refresh.",
   "makes": {
     "toyota": {
