@@ -1,5 +1,5 @@
 {
-  "version": "2026-07-01",
+  "version": "2026-08-01",
   "_comment": "Toyota/Daihatsu parts database. Maintenance intervals sourced from official service schedules. Run /update-parts-db to refresh.",
   "makes": {
     "toyota": {
